@@ -10,7 +10,7 @@ Self-Constrained Control is a research-grade control framework where an action e
 - Auditability is weak: teams cannot prove why an action was allowed or blocked.
 
 ## Core idea
-Self-constrained control means every action flows through gates -> planning -> execution -> telemetry. An action is proposed, validated against budgets and stability, executed only if allowed, and logged with metrics for post hoc verification.
+Self-constrained control means every action flows through gates -> planning -> execution -> telemetry: budgets and stability gates set the admissible envelope, the planner proposes actions inside it, gates finalize approval, execution proceeds only if allowed, and telemetry logs the decision for audit.
 
 ## Architecture
 - **Budgets**: track compute, latency, energy, and risk allocations per cycle.
