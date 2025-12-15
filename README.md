@@ -2,6 +2,7 @@
 **Status:** early development (pre-implementation documentation). Production-oriented interface is documented ahead of implementation.
 Quickstart commands document the intended interface and will become runnable with the initial implementation.
 Target milestone: v0.1 (first runnable demo and quickstart).
+> **Warning:** Pre-implementation stage. Interfaces are documented for planning; commands and modules are not yet available.
 
 ## One-sentence summary
 Self-Constrained Control is a production-oriented control framework design, currently in early development. An action executes only after passing budget, risk, latency, and stability gates, and the system enforces deterministic degradation paths when constraints tighten.
@@ -27,7 +28,7 @@ Self-constrained control means every action flows through gates -> planning -> e
 - **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
 ## Quickstart
-
+Commands below are placeholders until v0.1 is released.
 ```bash
 # install (package will be available on PyPI with v0.1 release)
 python -m venv .venv && source .venv/bin/activate
@@ -55,8 +56,7 @@ python -m scc.benchmarks.latency --config configs/demo.yaml
 - **Stability/rollback rate (%)**: proportion of cycles entering degradation or rollback paths.
   - Target: <0.5% beyond planned degradations.
   - Measurement: measured in integration tests and benchmarked via replayed traces.
-Benchmarks will ship with synthetic traces to make results reproducible.
-Benchmark scripts and commands are planned and will ship with the initial implementation.
+Benchmarks will ship with synthetic traces and scripts to make results reproducible and will be available with the initial implementation.
 
 ## Safety model
 - **Fail-closed by default**: no action executes without explicit budget and stability approval.
