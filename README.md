@@ -1,7 +1,7 @@
 # Self-Constrained Control
 
 ## One-sentence summary
-Self-Constrained Control is a research-grade control framework where an action executes only after passing budget, risk, latency, and stability gates. It enforces deterministic degradation paths when constraints tighten.
+Self-Constrained Control is a production-grade control framework design, currently in early development, where an action executes only after passing budget, risk, latency, and stability gates. It enforces deterministic degradation paths when constraints tighten.
 
 ## Why this exists
 - Controllers often ignore compute/latency budgets and overrun under load.
@@ -24,7 +24,7 @@ Self-constrained control means every action flows through gates -> planning -> e
 - **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
 ## Quickstart
-**Current status: early development (README-first scaffold). Commands below describe the intended interface and will be implemented once the initial implementation is available.**
+**Current status: early development (README-first scaffold). Commands below reflect the planned production-grade interface and will be implemented once the initial implementation is available.**
 
 ```bash
 # install (coming next)
@@ -69,4 +69,4 @@ Benchmarks will ship with synthetic traces to make results reproducible.
 - Publish LICENSE file and packaging for `pip install self-constrained-control`.
 
 ## License + Disclaimer
-Planned license: MIT; a LICENSE file will be added with the initial release. This is research-grade software with no warranties or fitness claims. There are no medical, industrial, or vendor endorsements. Use at your own risk and validate in your environment.
+Planned license: MIT; a LICENSE file will be added with the initial release. This is research software documenting a production-grade control design, with no warranties or fitness claims. There are no medical, industrial, or vendor endorsements. Use at your own risk and validate in your environment.
