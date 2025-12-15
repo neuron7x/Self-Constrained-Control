@@ -24,7 +24,7 @@ Self-constrained control means every action flows through gates -> planning -> e
 - **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
 ## Quickstart
-**Current status: early development (README-first scaffold). Commands below reflect the planned production-grade interface and will be implemented once the initial implementation is available.**
+**Current status: early development (README-first scaffold). Commands below reflect the planned production interface and will be implemented when the initial implementation becomes available.**
 
 ```bash
 # install (coming next)
@@ -69,4 +69,8 @@ Benchmarks will ship with synthetic traces to make results reproducible.
 - Publish LICENSE file and packaging for `pip install self-constrained-control`.
 
 ## License + Disclaimer
-Planned license: MIT; a LICENSE file will be added with the initial release. This is research software documenting a production-grade control design, with no warranties or fitness claims. There are no medical, industrial, or vendor endorsements. Use at your own risk and validate in your environment.
+Planned license: MIT. A LICENSE file will be added with the initial release.
+- Research software documenting a production-grade control design.
+- No warranties or fitness claims.
+- No medical, industrial, or vendor endorsements.
+- Use at your own risk and validate in your environment.
