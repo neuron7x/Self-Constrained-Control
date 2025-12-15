@@ -1,5 +1,6 @@
 # Self-Constrained Control
 **Status:** early development (README-first scaffold; production-grade interface documented ahead of implementation).
+Quickstart commands document the intended interface and will become runnable with the initial implementation.
 
 ## One-sentence summary
 Self-Constrained Control is a production-grade control framework design, currently in early development, where an action executes only after passing budget, risk, latency, and stability gates. It enforces deterministic degradation paths when constraints tighten.
@@ -25,12 +26,12 @@ Self-constrained control means every action flows through gates -> planning -> e
 - **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
 ## Quickstart
-**Current status: early development. Commands below reflect the planned production interface and will be implemented when the initial implementation becomes available. Package name will be `self-constrained-control` on PyPI with `scc` as the module namespace.**
+**Quickstart references the planned production interface. Package name will be `self-constrained-control` on PyPI with `scc` as the module namespace.**
 
 ```bash
 # install (coming next)
 python -m venv .venv && source .venv/bin/activate
-pip install -e .
+pip install self-constrained-control
 
 # run demo (coming next)
 python -m scc.demo --config configs/demo.yaml
