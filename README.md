@@ -1,7 +1,7 @@
 # Self-Constrained Control
 
 ## One-sentence summary
-Self-Constrained Control is a research-grade control framework where an action executes only after passing budget, risk, latency, and stability gates, and it enforces deterministic degradation paths when constraints tighten.
+Self-Constrained Control is a research-grade control framework where an action executes only after passing budget, risk, latency, and stability gates. It enforces deterministic degradation paths when constraints tighten.
 
 ## Why this exists
 - Controllers often ignore compute/latency budgets and overrun under load.
@@ -10,7 +10,7 @@ Self-Constrained Control is a research-grade control framework where an action e
 - Auditability is weak: teams cannot prove why an action was allowed or blocked.
 
 ## Core idea
-Self-constrained control means every action flows through gates -> planning -> execution -> telemetry: budgets and stability gates set the admissible envelope, the planner proposes actions inside it, gates finalize approval, execution proceeds only if allowed, and telemetry logs the decision for audit.
+Self-constrained control means every action flows through gates -> planning -> execution -> telemetry. Gates set the admissible envelope, the planner proposes actions inside it, gates finalize approval, execution proceeds only if allowed, and telemetry logs the decision for audit.
 
 ## Architecture
 - **Budgets**: track compute, latency, energy, and risk allocations per cycle.
@@ -21,7 +21,7 @@ Self-constrained control means every action flows through gates -> planning -> e
 - **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
 ## Quickstart
-Current status: scaffold / README-first. Commands below describe the intended interface and will be wired once the first code drop lands.
+Current status: early development (README-first scaffold). Commands below describe the intended interface and will be wired once the first code drop lands.
 
 ```bash
 # install (coming next)
@@ -66,4 +66,4 @@ Benchmarks will ship with synthetic traces to make results reproducible.
 - Publish LICENSE file and packaging for `pip install self-constrained-control`.
 
 ## License + Disclaimer
-Planned license: MIT; a LICENSE file will be added with the first code drop. This is research software with no warranties or fitness claims and no medical, industrial, or vendor endorsements. Use at your own risk and validate in your environment.
+Planned license: MIT; a LICENSE file will be added with the first code drop. This is research software with no warranties or fitness claims. There are no medical, industrial, or vendor endorsements. Use at your own risk and validate in your environment.
