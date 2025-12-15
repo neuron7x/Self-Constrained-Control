@@ -1,7 +1,7 @@
 # Self-Constrained Control
 
 ## One-sentence summary
-Self-Constrained Control is a research-grade control framework where an action executes only after passing budget, risk, latency, and stability gates, with deterministic degradation paths when constraints tighten.
+Self-Constrained Control is a research-grade control framework where an action executes only after passing budget, risk, latency, and stability gates, and it enforces deterministic degradation paths when constraints tighten.
 
 ## Why this exists
 - Controllers often ignore compute/latency budgets and overrun under load.
@@ -10,7 +10,7 @@ Self-Constrained Control is a research-grade control framework where an action e
 - Auditability is weak: teams cannot prove why an action was allowed or blocked.
 
 ## Core idea
-Self-constrained control means every action flows through gates → planning → execution → telemetry. An action is proposed, validated against budgets and stability, executed only if allowed, and logged with metrics for post hoc verification.
+Self-constrained control means every action flows through gates -> planning -> execution -> telemetry. An action is proposed, validated against budgets and stability, executed only if allowed, and logged with metrics for post hoc verification.
 
 ## Architecture
 - **Budgets**: track compute, latency, energy, and risk allocations per cycle.
@@ -47,7 +47,7 @@ Benchmarks will ship with synthetic traces to make results reproducible.
 ## Safety model
 - **Fail-closed by default**: no action executes without explicit budget and stability approval.
 - **Circuit breaker**: sustained violations clamp the planner to minimal-safe policies.
-- **Monotonic safety**: once a budget is exhausted, only degradation or rollback actions are permitted until budgets recover.
+- **Monotonic safety**: Once a budget is exhausted, only degradation or rollback actions are permitted until budgets recover.
 - **Deterministic degradation modes**: predefined low-risk behaviors for compute, latency, or stability stress.
 
 ## Scope / Non-goals
