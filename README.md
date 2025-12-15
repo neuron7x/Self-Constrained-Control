@@ -1,6 +1,7 @@
 # Self-Constrained Control
 **Status:** early development (pre-implementation documentation). Production-oriented interface is documented ahead of implementation.
 Quickstart commands document the intended interface and will become runnable with the initial implementation.
+Target milestone: v0.1 (first runnable demo and quickstart).
 
 ## One-sentence summary
 Self-Constrained Control is a production-oriented control framework design, currently in early development. An action executes only after passing budget, risk, latency, and stability gates, and the system enforces deterministic degradation paths when constraints tighten.
@@ -28,7 +29,7 @@ Self-constrained control means every action flows through gates -> planning -> e
 ## Quickstart
 
 ```bash
-# install from planned PyPI package name (coming next)
+# install from planned PyPI package name (coming next, subject to PyPI availability)
 python -m venv .venv && source .venv/bin/activate
 pip install self-constrained-control
 
@@ -43,9 +44,9 @@ python -m scc.benchmarks.latency --config configs/demo.yaml
 ```
 
 ## Metrics & Benchmarks
-- **Latency p50/p95**: measured per control cycle from plan request to gate decision; benchmark via `python -m scc.benchmarks.latency`.
-- **Budget violation rate**: fraction of proposed actions rejected for budget oversubscription; tracked by gates and emitted as a counter.
-- **Stability/rollback rate**: proportion of cycles entering degradation or rollback paths; measured in integration tests and benchmarked via replayed traces.
+- **Latency p50/p95 (ms)**: measured per control cycle from plan request to gate decision; target <50 ms p50 and <150 ms p95 in the demo harness; benchmark via `python -m scc.benchmarks.latency`.
+- **Budget violation rate (%)**: fraction of proposed actions rejected for budget oversubscription; target <1% in steady state; tracked by gates and emitted as a counter.
+- **Stability/rollback rate (%)**: proportion of cycles entering degradation or rollback paths; target <0.5% beyond planned degradations; measured in integration tests and benchmarked via replayed traces.
 Benchmarks will ship with synthetic traces to make results reproducible.
 Benchmark scripts and commands are planned and will ship with the initial implementation.
 
