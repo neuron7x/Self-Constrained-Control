@@ -47,9 +47,11 @@ python -m scc.benchmarks.latency --config configs/demo.yaml
 - **Latency p50/p95 (ms)**: measured per control cycle from plan request to gate decision.
   - Target: <50 ms p50 and <150 ms p95 in the demo harness.
   - Benchmark: `python -m scc.benchmarks.latency`.
+
 - **Budget violation rate (%)**: fraction of proposed actions rejected for budget oversubscription.
   - Target: <1% in steady state.
   - Measurement: tracked by gates and emitted as a counter.
+
 - **Stability/rollback rate (%)**: proportion of cycles entering degradation or rollback paths.
   - Target: <0.5% beyond planned degradations.
   - Measurement: measured in integration tests and benchmarked via replayed traces.
@@ -79,7 +81,7 @@ Benchmark scripts and commands are planned and will ship with the initial implem
 
 ## License + Disclaimer
 Planned license: MIT. A LICENSE file will be added with the initial release.
-- Research software documenting a production-grade control design.
+- Research-stage software documenting a production-oriented control design.
 - No warranties or fitness claims.
 - No medical, industrial, or vendor endorsements.
 - Use at your own risk and validate in your environment.
