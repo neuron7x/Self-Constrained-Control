@@ -10,7 +10,10 @@ Self-Constrained Control is a research-grade control framework where an action e
 - Auditability is weak: teams cannot prove why an action was allowed or blocked.
 
 ## Core idea
-Self-constrained control means every action flows through gates -> planning -> execution -> telemetry. Gates set the admissible envelope, the planner proposes actions inside it, gates finalize approval, execution proceeds only if allowed, and telemetry logs the decision for audit.
+Self-constrained control means every action flows through gates -> planning -> execution -> telemetry.
+- Gates set the admissible envelope.
+- The planner proposes actions inside it and submits them to gates for approval.
+- Execution proceeds only if allowed, and telemetry logs the decision for audit.
 
 ## Architecture
 - **Budgets**: track compute, latency, energy, and risk allocations per cycle.
@@ -21,7 +24,7 @@ Self-constrained control means every action flows through gates -> planning -> e
 - **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
 ## Quickstart
-Current status: early development (README-first scaffold). Commands below describe the intended interface and will be implemented once the first code drop lands.
+**Current status: early development (README-first scaffold). Commands below describe the intended interface and will be implemented once the first code drop lands.**
 
 ```bash
 # install (coming next)
@@ -37,7 +40,6 @@ pytest -q
 # run benchmarks (coming next)
 python -m scc.benchmarks.latency --config configs/demo.yaml
 ```
-Demo, test, and benchmark modules will ship in the first code release; the commands above are documented now for planning and will not run until they are available.
 
 ## Metrics & Benchmarks
 - **Latency p50/p95**: measured per control cycle from plan request to gate decision; benchmark via `python -m scc.benchmarks.latency`.
