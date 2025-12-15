@@ -1,124 +1,69 @@
 # Self-Constrained Control
 
-**Self-Constrained Control** is an open, reproducible framework for building agents and control systems that treat **constraints as first-class state**, not as external afterthoughts.
+## One-sentence summary
+Self-Constrained Control is a research-grade control framework where an action executes only after passing budget, risk, latency, and stability gates, with deterministic degradation paths when constraints tighten.
 
-The core principle is simple and strict:
-
-> **An agent may act only if the action is feasible under current resource budgets and preserves system stability.**
-
-When constraints tighten (latency, energy, compute, risk), the system **degrades deterministically** instead of failing unpredictably.
-
----
-
-## What problem this solves
-
-Most modern agents and controllers:
-- plan without explicit resource awareness,
-- violate budgets under load,
-- fail chaotically instead of degrading,
-- cannot prove why an action was executed or blocked.
-
-This project addresses that by making **constraint compliance the execution rule**, not a safety patch.
-
----
-
-## What this project is
-
-Self-Constrained Control is:
-- a **control and decision framework**, not a single model,
-- **budget-aware by design** (compute, latency, energy, risk),
-- **safety-gated** (actions require approval),
-- **measurable and testable** (metrics, benchmarks, CI).
-
-It is intended for:
-- intelligent agents,
-- robotics and teleoperation,
-- real-time decision systems,
-- research prototypes that must be reproducible and auditable.
-
----
+## Why this exists
+- Controllers often ignore compute/latency budgets and overrun under load.
+- Safety gates are bolted on instead of being the execution rule.
+- Systems fail open and unpredictably instead of degrading to safe modes.
+- Auditability is weak: teams cannot prove why an action was allowed or blocked.
 
 ## Core idea
+Self-constrained control means every action flows through gates → planning → execution → telemetry. An action is proposed, validated against budgets and stability, executed only if allowed, and logged with metrics for post hoc verification.
 
-Instead of asking:
+## Architecture
+- **Budgets**: track compute, latency, energy, and risk allocations per cycle.
+- **Gates**: enforce “no action without budget or stability clearance,” including circuit-breaker logic.
+- **Planner**: proposes candidate actions ranked by value under current constraints.
+- **Degradation**: defines deterministic fallback modes when budgets tighten or gates fail closed.
+- **Monitoring**: exports metrics, alerts on anomalies, and records gate decisions.
+- **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
-> “What is the best action?”
+## Quickstart
+Current status: scaffold / README-first. Commands below describe the intended interface and will be wired once the first code drop lands.
 
-the system asks:
+```bash
+# install (coming next)
+python -m venv .venv && source .venv/bin/activate
+pip install -e .
 
-> “Is this action **worth its future cost** and **safe under current constraints**?”
+# run demo (coming next)
+python -m scc.demo --config configs/demo.yaml
 
-This shifts behavior from reactive output generation to **strategic value optimization**.
+# run tests (coming next)
+pytest -q
 
----
-
-## Foundations
-
-The framework is based on **well-established, non-proprietary tools and principles**:
-
-### Control & decision
-- constrained decision making (MDP-style framing),
-- risk-aware evaluation (CVaR-style reasoning),
-- stability checks (Lyapunov-style conditions),
-- classical control fallbacks (LQR-style baselines),
-- learning components (actor–critic, replay buffers) where justified.
-
-### Resource logic
-- explicit budgets (per module or per cycle),
-- fatigue / load proxies via resource accounting,
-- hard and soft execution gates.
-
-### System resilience
-- circuit breakers and watchdogs,
-- graceful degradation modes,
-- anomaly detection,
-- state persistence with integrity checks.
-
----
-
-## High-level architecture
-
-**Sense / Simulate → Decode → Plan → Gate → Actuate → Monitor**
-
-- **State source**: simulator or real sensors
-- **Decoder**: produces intent/state under budget
-- **Planner**: proposes candidate actions
-- **Constraint gate**: approves or rejects actions
-- **Actuator**: executes within safety limits
-- **Monitoring**: detects anomalies and stress
-- **Telemetry**: exports metrics for dashboards and audits
-
----
-
-## Design guarantees
-
-By construction, the system enforces:
-
-1. **No execution without budget approval**
-2. **No execution without stability acceptance**
-3. **Deterministic degradation under stress**
-4. **Full observability via metrics**
-
-If an action fails, the system can explain **why**.
-
----
-
-## Repository structure (expected)
-
-```text
-.
-├── src/                # core control, budgeting, monitoring modules
-├── data/               # configs and example datasets
-├── tests/              # unit tests, integration tests, benchmarks
-└── .github/workflows/  # CI pipelines
+# run benchmarks (coming next)
+python -m scc.benchmarks.latency --config configs/demo.yaml
 ```
 
----
+## Metrics & Benchmarks
+- **Latency p50/p95**: measured per control cycle from plan request to gate decision; benchmark via `python -m scc.benchmarks.latency`.
+- **Budget violation rate**: fraction of proposed actions rejected for budget oversubscription; tracked by gates and emitted as a counter.
+- **Stability/rollback rate**: proportion of cycles entering degradation or rollback paths; measured in integration tests and benchmarked via replayed traces.
+Benchmarks will ship with synthetic traces to make results reproducible.
 
-## Scope and status
+## Safety model
+- **Fail-closed by default**: no action executes without explicit budget and stability approval.
+- **Circuit breaker**: sustained violations clamp the planner to minimal-safe policies.
+- **Monotonic safety**: once a budget is exhausted, only degradation or rollback actions are permitted until budgets recover.
+- **Deterministic degradation modes**: predefined low-risk behaviors for compute, latency, or stability stress.
 
-This is an **independent research engineering project**.
+## Scope / Non-goals
+- Not a hardware-in-the-loop solution; focus is controller logic and telemetry.
+- Not a medical or industrial safety certification toolkit.
+- Not tied to any vendor model or proprietary runtime.
+- Does not promise optimal control; prioritizes constraint compliance and explainability.
 
-- No vendor affiliation is implied.
-- No medical or safety claims are made.
-- The goal is open, verifiable control under constraints.
+## Roadmap
+- Implement budget accounting and gate evaluators with replayable configs.
+- Add planner stubs with deterministic and learned policy hooks.
+- Ship degradation mode library and circuit-breaker policies.
+- Provide telemetry sink (Prometheus/OpenTelemetry) and trace export.
+- Deliver demo harness (`python -m scc.demo`) with synthetic environment.
+- Add benchmark suite for latency, budget violation, and rollback rates.
+- Publish LICENSE file and packaging for `pip install self-constrained-control`.
+
+## License + Disclaimer
+Planned license: MIT; a LICENSE file will be added with the first code drop. This is research software with no warranties or fitness claims and no medical, industrial, or vendor endorsements. Use at your own risk and validate in your environment.
