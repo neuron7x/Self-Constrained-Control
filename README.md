@@ -1,5 +1,6 @@
 # Self-Constrained Control
 **Status:** early development (pre-implementation documentation). Production-oriented interface is documented ahead of implementation.
+Code is not yet released.
 Quickstart commands document the intended interface and will become runnable with the initial implementation.
 Target milestone: v0.1 (first runnable demo and quickstart).
 > **Warning:** Pre-implementation stage. Interfaces are documented for planning; commands and modules are not yet available.
@@ -14,7 +15,7 @@ Self-Constrained Control is a production-oriented control framework design, curr
 - Auditability is weak: teams cannot prove why an action was allowed or blocked.
 
 ## Core idea
-Self-constrained control means every action flows through gates -> planning -> execution -> telemetry.
+Self-constrained control means every action flows through gates, then planning, then execution, then telemetry.
 - Gates set the admissible envelope.
 - The planner proposes actions inside it and submits them to gates for approval.
 - Execution proceeds only if allowed, and telemetry logs the decision for audit.
@@ -56,7 +57,8 @@ python -m scc.benchmarks.latency --config configs/demo.yaml
 - **Stability/rollback rate (%)**: proportion of cycles entering degradation or rollback paths.
   - Target: <0.5% beyond planned degradations.
   - Measurement: measured in integration tests and benchmarked via replayed traces.
-Benchmarks will ship with synthetic traces and scripts to make results reproducible and will be available with the initial implementation.
+Benchmarks will ship with synthetic traces and scripts to make results reproducible.
+They will be available with the initial implementation.
 
 ## Safety model
 - **Fail-closed by default**: no action executes without explicit budget and stability approval.
