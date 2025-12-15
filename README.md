@@ -1,9 +1,9 @@
 # Self-Constrained Control
-**Status:** early development (README-first scaffold). Production-grade interface documented ahead of implementation.
+**Status:** early development (pre-implementation documentation). Production-oriented interface is documented ahead of implementation.
 Quickstart commands document the intended interface and will become runnable with the initial implementation.
 
 ## One-sentence summary
-Self-Constrained Control is a production-grade control framework design, currently in early development. An action executes only after passing budget, risk, latency, and stability gates, and the system enforces deterministic degradation paths when constraints tighten.
+Self-Constrained Control is a production-oriented control framework design, currently in early development. An action executes only after passing budget, risk, latency, and stability gates, and the system enforces deterministic degradation paths when constraints tighten.
 
 ## Why this exists
 - Controllers often ignore compute/latency budgets and overrun under load.
@@ -26,10 +26,9 @@ Self-constrained control means every action flows through gates -> planning -> e
 - **State/Checkpointing**: persists controller state and budget counters for recovery and audits.
 
 ## Quickstart
-Quickstart references the planned production interface. Package name will be `self-constrained-control` on PyPI with `scc` as the module namespace.
 
 ```bash
-# install (coming next)
+# install from planned PyPI package name (coming next)
 python -m venv .venv && source .venv/bin/activate
 pip install self-constrained-control
 
@@ -48,6 +47,7 @@ python -m scc.benchmarks.latency --config configs/demo.yaml
 - **Budget violation rate**: fraction of proposed actions rejected for budget oversubscription; tracked by gates and emitted as a counter.
 - **Stability/rollback rate**: proportion of cycles entering degradation or rollback paths; measured in integration tests and benchmarked via replayed traces.
 Benchmarks will ship with synthetic traces to make results reproducible.
+Benchmark scripts and commands are planned and will ship with the initial implementation.
 
 ## Safety model
 - **Fail-closed by default**: no action executes without explicit budget and stability approval.
