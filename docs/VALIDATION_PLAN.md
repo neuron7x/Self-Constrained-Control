@@ -80,3 +80,11 @@ On each CI run, the following artifacts are expected:
 - junit/pytest output in logs,
 - coverage summary in logs,
 - optional exported metrics in `artifacts/metrics/` when running locally.
+
+## 6. Validation audit — 2025-12-16
+
+- **Tools run (local):**
+  - `ruff check .` — **fails** (ambiguous current `I` in `neural_interface.py`; unused unpacked var `r` in `planner_module.py`; pyproject enables `fix=true`, so fixes were reverted to preserve state).
+  - `mypy src` — **fails** (unused `type: ignore` markers, untyped `njit` decorators/returns in `neural_interface.py`, `no-any-return` in planner and monitoring, `attr-defined` for `degradation_mode` assignment).
+  - `pytest` — **passes** (21 tests, ~2s).
+- **Validity level:** *Partial*. Functional/integration coverage passes, but AC-202 (ruff/mypy) is unmet until the above lint/type issues are addressed.
