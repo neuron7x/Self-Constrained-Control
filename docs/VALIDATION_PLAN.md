@@ -84,7 +84,15 @@ On each CI run, the following artifacts are expected:
 ## 6. Validation audit — 2025-12-16
 
 - **Tools run (local):**
-  - `ruff check .` — **fails** (ambiguous current `I` in `neural_interface.py`; unused unpacked var `r` in `planner_module.py`; pyproject enables `fix=true`, so fixes were reverted to preserve state).
-  - `mypy src` — **fails** (unused `type: ignore` markers, untyped `njit` decorators/returns in `neural_interface.py`, `no-any-return` in planner and monitoring, `attr-defined` for `degradation_mode` assignment).
+  - `ruff check .` — **fails**:
+    - ambiguous uppercase variable name `I` (`E741`) in `neural_interface.py`,
+    - unused unpacked var `r` (should be `_` if intentionally unused) in `planner_module.py`,
+    - `pyproject.toml` has `fix=true` enabled, so automatic fixes were manually reverted to document the original failure state.
+  - `ruff format --check .` — **fails** (would reformat 13 files; formatting not applied).
+  - `mypy src` — **fails**:
+    - unused `type: ignore` markers,
+    - untyped `njit` decorators/returns in `neural_interface.py`,
+    - `no-any-return` in `planner_module.py` and `monitoring.py`,
+    - `attr-defined` for `degradation_mode` assignment.
   - `pytest` — **passes** (21 tests, ~2s).
-- **Validity level:** *Partial*. Functional/integration coverage passes, but AC-202 (ruff/mypy) is unmet until the above lint/type issues are addressed.
+- **Validity level:** *Partial*. Functional/integration coverage passes, but AC-202 (quality acceptance: `ruff check`, `ruff format --check`, and `mypy`; see section 1.3) is unmet until the above lint/type issues are addressed.
