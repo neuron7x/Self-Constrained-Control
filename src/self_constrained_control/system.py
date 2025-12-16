@@ -209,3 +209,5 @@ class ResourceAwareSystem:
             wd.check()
 
         self.metrics.export_parquet("artifacts/metrics/metrics.parquet")
+        # Always emit a JSON snapshot for downstream consumers and tests
+        self.metrics.export_json("artifacts/metrics/metrics.json")
