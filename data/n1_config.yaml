@@ -1,0 +1,28 @@
+# System config
+initial_battery: 100.0
+initial_user_energy: 100.0
+
+gamma: 0.95
+tau: 10.0
+epsilon: 1.0e-6
+
+safety_mode: strict
+watchdog_timeout_s: 1.0
+
+energy_threshold: 20.0
+battery_threshold: 10.0
+
+global_resource_pool: 1000.0
+decoder_budget: 200.0
+planner_budget: 400.0
+actuator_budget: 400.0
+
+decoder_sla_ms: 20.0
+planner_sla_ms: 50.0
+actuator_sla_ms: 30.0
+
+# Simulator config
+n_channels: 128
+sim_window_s: 0.02
+max_firing_hz: 200.0
+seed: 1337

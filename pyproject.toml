@@ -1,0 +1,94 @@
+[build-system]
+requires = ["setuptools>=69.0.0", "wheel>=0.42.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "self-constrained-control"
+version = "0.1.0"
+description = "Resource-aware control system scaffold: neural interface simulation, stability-aware planning, budgeting, safety monitoring."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+authors = [{ name = "neuron7x" }]
+keywords = ["BCI", "neural-interface", "resource-aware", "control", "robotics", "safety", "planning", "simulation"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Scientific/Engineering :: Bio-Informatics",
+  "Typing :: Typed",
+]
+dependencies = [
+  "numpy>=1.26.4",
+  "pydantic>=2.5.0",
+  "pyyaml>=6.0.1",
+  "structlog>=24.1.0",
+  "typing-extensions>=4.10.0",
+]
+
+[project.optional-dependencies]
+sim = ["numba>=0.59.0"]
+ml = ["torch>=2.1.0"]
+data = ["pandas>=2.1.0", "pyarrow>=14.0.0"]
+dev = [
+  "pytest>=7.4.0",
+  "pytest-cov>=4.1.0",
+  "pytest-asyncio>=0.23.0",
+  "pytest-benchmark>=4.0.0",
+  "ruff>=0.5.0",
+  "mypy>=1.10.0",
+  "types-PyYAML>=6.0.12.20240808",
+  "pre-commit>=3.7.0",
+  "build>=1.2.1",
+  "twine>=5.1.0",
+]
+
+[project.urls]
+Repository = "https://github.com/neuron7x/Self-Constrained-Control"
+Issues = "https://github.com/neuron7x/Self-Constrained-Control/issues"
+
+[project.scripts]
+scc = "self_constrained_control.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+fix = true
+src = ["src", "tests"]
+lint.select = ["E", "F", "I", "B", "UP", "SIM", "A", "RUF"]
+lint.ignore = ["E203", "E266", "E501"]
+lint.per-file-ignores = { "tests/**.py" = ["S101"] }
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_unused_configs = true
+ignore_missing_imports = true
+show_error_codes = true
+pretty = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --disable-warnings --maxfail=1 --cov=self_constrained_control --cov-report=term-missing"
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+branch = true
+source = ["self_constrained_control"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
