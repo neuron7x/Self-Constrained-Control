@@ -1,0 +1,125 @@
+Metadata-Version: 2.4
+Name: self-constrained-control
+Version: 0.1.0
+Summary: Resource-aware control system scaffold: neural interface simulation, stability-aware planning, budgeting, safety monitoring.
+Author: neuron7x
+License: Apache-2.0
+Project-URL: Repository, https://github.com/neuron7x/Self-Constrained-Control
+Project-URL: Issues, https://github.com/neuron7x/Self-Constrained-Control/issues
+Keywords: BCI,neural-interface,resource-aware,control,robotics,safety,planning,simulation
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3 :: Only
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering :: Artificial Intelligence
+Classifier: Topic :: Scientific/Engineering :: Bio-Informatics
+Classifier: Typing :: Typed
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: numpy>=1.26.4
+Requires-Dist: pydantic>=2.5.0
+Requires-Dist: pyyaml>=6.0.1
+Requires-Dist: structlog>=24.1.0
+Requires-Dist: typing-extensions>=4.10.0
+Provides-Extra: sim
+Requires-Dist: numba>=0.59.0; extra == "sim"
+Provides-Extra: ml
+Requires-Dist: torch>=2.1.0; extra == "ml"
+Provides-Extra: data
+Requires-Dist: pandas>=2.1.0; extra == "data"
+Requires-Dist: pyarrow>=14.0.0; extra == "data"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.23.0; extra == "dev"
+Requires-Dist: pytest-benchmark>=4.0.0; extra == "dev"
+Requires-Dist: ruff>=0.5.0; extra == "dev"
+Requires-Dist: mypy>=1.10.0; extra == "dev"
+Requires-Dist: types-PyYAML>=6.0.12.20240808; extra == "dev"
+Requires-Dist: pre-commit>=3.7.0; extra == "dev"
+Requires-Dist: build>=1.2.1; extra == "dev"
+Requires-Dist: twine>=5.1.0; extra == "dev"
+Dynamic: license-file
+
+# Self-Constrained-Control
+
+**OpenAI-level engineering scaffold** for a **resource-aware control loop** integrating:
+- **Neural interface simulation** (population-rate generation with optional HH-style hooks)
+- **Intention decoding** (rate vector → discrete intent)
+- **Stability-aware planning** (Lyapunov gate + LQR guidance + optional RL backend)
+- **Game-theoretic budgeting** (auction + prediction + best-response equilibrium)
+- **Safety & robustness primitives** (circuit breaker, watchdog, anomaly detection, graceful degradation)
+- **Observability** (latency metrics, artifacts, snapshots)
+
+## Disclaimer / scope boundary
+
+- This repository is **not affiliated with a neurotech company, a humanoid platform vendor, or OpenAI**.
+- This is a **simulation + orchestration scaffold** for research and engineering iteration.
+- It makes **no clinical, medical, or real-world safety claims**.
+- The default actuator is a stub. **Replacing it with real hardware control requires a new safety review**.
+
+## Documentation (formal, traceable, “no information degradation”)
+
+If you want the system to evolve without semantic drift, start here:
+
+- `docs/FORMALIZATION.md` — how we preserve meaning while changing code
+- `docs/REQUIREMENTS.md` — testable requirements (SRS-lite)
+- `docs/ARCHITECTURE.md` — component/dataflow model (SAD-lite)
+- `docs/SAFETY_CASE.md` — assurance case (GSN-lite)
+- `docs/VALIDATION_PLAN.md` — acceptance criteria and scenarios
+- `docs/TRACEABILITY.md` — requirements → implementation → tests
+- `docs/RISK_REGISTER.md` — risk scoring and mitigations
+- `docs/GLOSSARY.md` — fixed terminology
+- `docs/adr/` — architecture decision records (ADRs)
+
+## Quickstart
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev,sim]"
+python -m self_constrained_control.cli run --config data/n1_config.yaml --actions move_arm,plan_route,stop --epochs 2
+```
+
+## Project layout
+
+- `src/self_constrained_control/` — library
+- `scripts/` — runnable scripts
+- `tests/` — unit/integration tests
+- `docs/` — architecture, requirements, API, deployment notes
+- `data/n1_config.yaml` — config
+
+## Developer commands
+
+```bash
+ruff check .
+ruff format .
+mypy src
+pytest
+```
+
+## License
+
+Apache-2.0
+
+
+## Non-claims (hard boundaries)
+
+- This repository is **not** affiliated with any neurotech/robotics company and does **not** represent an actual medical device.
+- The “N1” naming is used as a **placeholder interface** for a high-channel neural acquisition device.
+- The simulator is synthetic; “validity” here means **engineering validity** (explicit state, contracts, tests, traceability).
+
+## Documentation map
+
+- `docs/FORMALIZATION.md` — formal model, invariants, and runtime contract IDs
+- `docs/ARGUMENTATION.md` — claim → mechanism → evidence argument (grounded engineering)
+- `docs/INTERFACE_CONTRACTS.md` — stable module interfaces and guarantees
+- `docs/SAFETY_CASE.md` — safety argument + evidence pointers
+- `docs/TRACEABILITY.md` — requirements ↔ tests ↔ implementation
+- `docs/DOCUMENTATION_PROMPT_RESPONSE.md` — coverage of documentation/testing/CI/security items from the UA prompt
