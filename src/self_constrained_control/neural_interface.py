@@ -106,7 +106,71 @@ if _HAVE_NUMBA:
             out[i] = rates[i] + noise_scale * s
         return out
 
+    @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
+    def hh_dynamics_vectorized(
+        V: np.ndarray,
+        m: np.ndarray,
+        h: np.ndarray,
+        n: np.ndarray,
+        I_inj: np.ndarray,
+        dt: float,
+        n_steps: int,
+        g_Na: float,
+        g_K: float,
+        g_L: float,
+        E_Na: float,
+        E_K: float,
+        E_L: float,
+        C_m: float,
+        temp_factor: float,
+    ) -> Tuple[np.ndarray, np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+        V_local = V.copy()
+        m_local = m.copy()
+        h_local = h.copy()
+        n_local = n.copy()
+        V_trace = np.empty((V.shape[0], n_steps), dtype=np.float32)
+        spike_counts = np.zeros(V.shape[0], dtype=np.int32)
+        for t in range(n_steps):
+            _hh_step(
+                V_local,
+                m_local,
+                h_local,
+                n_local,
+                I_inj,
+                dt,
+                g_Na,
+                g_K,
+                g_L,
+                E_Na,
+                E_K,
+                E_L,
+                C_m,
+                temp_factor,
+            )
+            for i in prange(V_local.shape[0]):
+                if V_local[i] > 0.0:
+                    spike_counts[i] += 1
+            V_trace[:, t] = V_local
+        return V_trace, spike_counts, (V_local, m_local, h_local, n_local)
 
+    @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
+    def apply_sparse_correlation_nb(
+        rates: np.ndarray,
+        indices: np.ndarray,
+        indptr: np.ndarray,
+        data: np.ndarray,
+        noise_scale: float,
+    ) -> np.ndarray:
+        out = rates.copy()
+        n_rows = indptr.shape[0] - 1
+        for i in prange(n_rows):
+            s = 0.0
+            start = indptr[i]
+            end = indptr[i + 1]
+            for k in range(start, end):
+                s += data[k] * rates[indices[k]]
+            out[i] = rates[i] + noise_scale * s
+        return out
 
 else:
     def _hh_step(
@@ -166,6 +230,87 @@ else:
             out[i] = float(out[i]) + s * float(noise_scale)
         return out
 
+    def hh_dynamics_vectorized(
+        V: np.ndarray,
+        m: np.ndarray,
+        h: np.ndarray,
+        n: np.ndarray,
+        I_inj: np.ndarray,
+        dt: float,
+        n_steps: int,
+        g_Na: float,
+        g_K: float,
+        g_L: float,
+        E_Na: float,
+        E_K: float,
+        E_L: float,
+        C_m: float,
+        temp_factor: float,
+    ) -> Tuple[np.ndarray, np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+        V_local = V.copy()
+        m_local = m.copy()
+        h_local = h.copy()
+        n_local = n.copy()
+        V_trace = np.empty((V.shape[0], n_steps), dtype=np.float32)
+        spike_counts = np.zeros(V.shape[0], dtype=np.int32)
+        for t in range(n_steps):
+            _hh_step(
+                V_local,
+                m_local,
+                h_local,
+                n_local,
+                I_inj,
+                dt,
+                g_Na,
+                g_K,
+                g_L,
+                E_Na,
+                E_K,
+                E_L,
+                C_m,
+                temp_factor,
+            )
+            for i in range(V_local.shape[0]):
+                if V_local[i] > 0.0:
+                    spike_counts[i] += 1
+            V_trace[:, t] = V_local
+        return V_trace, spike_counts, (V_local, m_local, h_local, n_local)
+
+    def apply_sparse_correlation_nb(
+        rates: np.ndarray,
+        indices: np.ndarray,
+        indptr: np.ndarray,
+        data: np.ndarray,
+        noise_scale: float,
+    ) -> np.ndarray:
+        out = rates.copy()
+        n_rows = indptr.shape[0] - 1
+        for i in range(n_rows):
+            s = 0.0
+            start = int(indptr[i])
+            end = int(indptr[i + 1])
+            for k in range(start, end):
+                s += float(data[k]) * float(rates[int(indices[k])])
+            out[i] = float(rates[i]) + float(noise_scale) * s
+        return out
+
+def apply_sparse_correlation(
+    rates: np.ndarray,
+    indices: np.ndarray,
+    indptr: np.ndarray,
+    data: np.ndarray,
+    noise_scale: float = 0.1,
+) -> np.ndarray:
+    out = rates.copy()
+    n_rows = indptr.shape[0] - 1
+    for i in range(n_rows):
+        start = int(indptr[i])
+        end = int(indptr[i + 1])
+        if end > start:
+            contrib = float(np.dot(data[start:end], rates[indices[start:end]]))
+            out[i] = float(rates[i]) + noise_scale * contrib
+    return out
+
 
 
 @dataclass
@@ -179,11 +324,21 @@ class DetailedMetabolicState:
     lactate: float = 1.0e-3
     O2: float = 0.1e-3
 
-    def update(self, dt: float, total_spikes: int, n_neurons: int) -> float:
-        ATP_per_spike = 1.67e-18
-        spike_cost = (ATP_per_spike * float(total_spikes)) / max(1.0, float(n_neurons))
+    def update(
+        self,
+        dt: float,
+        spike_count: Optional[int] = None,
+        I_total: float = 0.0,
+        pump_rate: float = 0.0,
+        n_neurons: int = 1024,
+        total_spikes: Optional[int] = None,
+    ) -> float:
+        ATP_per_spike_per_neuron = 1.67e-18
+        spikes = float(spike_count if spike_count is not None else total_spikes or 0)
+        total_spike_cost = (ATP_per_spike_per_neuron * spikes) / max(1.0, float(n_neurons))
+        pump_cost = float(pump_rate) * float(dt)
         basal_cost = 1e-6 * dt
-        cost = (spike_cost + basal_cost)
+        cost = total_spike_cost + pump_cost + basal_cost
         self.ATP = float(np.clip(self.ATP - cost, 0.0, 10e-3))
         return float(self.ATP / 5.0e-3)
 
@@ -270,10 +425,29 @@ class N1Simulator:
         self.n = np.full(self.channels, 0.32, dtype=np.float32)
 
         self.neighbors, self.weights = _build_neighbor_graph(self.channels, k_neighbors=8)
+        self._init_sparse_correlation(k_neighbors=8)
 
         self.metabolic = DetailedMetabolicState()
         self.neuromod = NeuromodulationController()
         self.validator = N1DataValidator(self.channels, self.max_firing_hz)
+
+    def _init_sparse_correlation(self, k_neighbors: int = 8) -> None:
+        indices: list[int] = []
+        data: list[float] = []
+        indptr = [0]
+        half = k_neighbors // 2
+        for i in range(self.channels):
+            for j in range(max(0, i - half), min(self.channels, i + half + 1)):
+                if j == i:
+                    continue
+                distance = abs(i - j)
+                correlation = 0.1 * np.exp(-distance / 2.0)
+                indices.append(int(j))
+                data.append(float(correlation))
+            indptr.append(len(indices))
+        self.cov_indices = np.array(indices, dtype=np.int32)
+        self.cov_data = np.array(data, dtype=np.float32)
+        self.cov_indptr = np.array(indptr, dtype=np.int32)
 
     async def get_neural_spikes(self) -> np.ndarray:
         dt = 1.0 / self.sampling_rate_hz
@@ -321,17 +495,33 @@ class N1Simulator:
         rates = rates / max(1e-6, float(rates.max())) * float(self.max_firing_hz)
 
         if _HAVE_NUMBA:
-            rates = _apply_neighbors(rates.astype(np.float32), self.neighbors, self.weights, 0.1)
+            rates = apply_sparse_correlation_nb(
+                rates.astype(np.float32),
+                self.cov_indices,
+                self.cov_indptr,
+                self.cov_data,
+                0.1,
+            )
         else:
-            out = rates.copy()
-            for i in range(self.channels):
-                out[i] = rates[i] + 0.1 * float(np.sum(self.weights[i] * rates[self.neighbors[i]]))
-            rates = out
+            rates = apply_sparse_correlation(
+                rates.astype(np.float32),
+                self.cov_indices,
+                self.cov_indptr,
+                self.cov_data,
+                0.1,
+            )
 
         rates = np.clip(rates.astype(np.float32), 0.0, float(self.max_firing_hz))
         # metabolic update
         total_spikes = int(np.sum(rates) * self.sim_window_s / 10.0)
-        _ = self.metabolic.update(self.sim_window_s, total_spikes, self.channels)
+        I_total = float(np.sum(np.abs(I)))
+        _ = self.metabolic.update(
+            dt=self.sim_window_s,
+            spike_count=total_spikes,
+            I_total=I_total,
+            pump_rate=1e-18,
+            n_neurons=self.channels,
+        )
 
         ok, msg = self.validator.validate(rates)
         if not ok:
