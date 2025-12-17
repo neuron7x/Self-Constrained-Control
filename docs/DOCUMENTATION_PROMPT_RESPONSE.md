@@ -4,7 +4,7 @@ This note maps the repository's existing assets to the required documentation, t
 
 ## 1. Документація проекту
 - **Мета та компоненти**: див. `README.md` (огляд), `docs/ARCHITECTURE.md` (потоки даних, модулі), `docs/REQUIREMENTS.md` (перевірювані вимоги), `docs/FORMALIZATION.md` (інваріанти, контракти), `docs/SAFETY_CASE.md` (аргументи безпеки).
-- **Встановлення та середовище**: `python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev,sim]"`. Конфігурація прикладу: `data/n1_config.yaml`; CLI запуск: `python -m self_constrained_control.cli run --config data/n1_config.yaml --actions move_arm,plan_route,stop --epochs 2`.
+- **Встановлення та середовище**: `python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev,sim]"`. Конфіґурація прикладу: `data/n1_config.yaml`; CLI запуск: `python -m self_constrained_control.cli run --config data/n1_config.yaml --actions move_arm,plan_route,stop --epochs 2`.
 - **Залежності та оточення**: основні залежності описані в `pyproject.toml` і дублюються в `requirements.txt`; дев-залежності — у `requirements-dev.txt`. Опціональні екстри: `sim`, `ml`, `data`, `dev`.
 - **Пояснення коду**: публічні класи/методи мають тайпінги; див. `src/self_constrained_control/` для модулів `neural_interface`, `budget_manager`, `planner_module`, `system`, `monitoring`. Приклади використання — в CLI (`src/self_constrained_control/cli.py`) і тестах.
 - **Типи та перевірка даних**: проект суворо типізований (mypy `strict`), структуровані контракти — у `src/self_constrained_control/contracts.py`.
