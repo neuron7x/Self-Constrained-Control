@@ -73,4 +73,4 @@ Apache-2.0
 - `docs/INTERFACE_CONTRACTS.md` — stable module interfaces and guarantees
 - `docs/SAFETY_CASE.md` — safety argument + evidence pointers
 - `docs/TRACEABILITY.md` — requirements ↔ tests ↔ implementation
-
+- `docs/DOCUMENTATION_PROMPT_RESPONSE.md` — coverage of documentation/testing/CI/security items from the UA prompt
