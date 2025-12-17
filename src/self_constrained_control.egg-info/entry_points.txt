@@ -1,2 +1,0 @@
-[console_scripts]
-scc = self_constrained_control.cli:main
