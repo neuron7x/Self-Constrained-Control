@@ -1,5 +1,7 @@
 # Self-Constrained-Control
 
+[![CI](https://github.com/neuron7x/Self-Constrained-Control/actions/workflows/ci.yml/badge.svg)](https://github.com/neuron7x/Self-Constrained-Control/actions/workflows/ci.yml)
+
 **OpenAI-level engineering scaffold** for a **resource-aware control loop** integrating:
 - **Neural interface simulation** (population-rate generation with optional HH-style hooks)
 - **Intention decoding** (rate vector → discrete intent)

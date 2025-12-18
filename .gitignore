@@ -11,3 +11,4 @@ dist/
 .mypy_cache/
 artifacts/
 htmlcov/
+.coverage
