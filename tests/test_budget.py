@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from self_constrained_control.budget_manager import GameTheoreticBudgetManager
 
+
 def test_nash_equilibrium_keys_and_nonnegative():
     bm = GameTheoreticBudgetManager(
         1000.0,

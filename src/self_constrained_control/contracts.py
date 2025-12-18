@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Dict, Iterable, Optional
 
 
 class InvariantViolation(RuntimeError):
@@ -16,6 +16,7 @@ def _is_finite(x: float) -> bool:
 @dataclass(frozen=True)
 class SystemScalars:
     """Minimal scalar state required to reason about safety and resource behavior."""
+
     battery_pct: float
     user_energy_pct: float
     degradation_mode: str
@@ -24,8 +25,9 @@ class SystemScalars:
 @dataclass(frozen=True)
 class BudgetSnapshot:
     """Budget invariants are checked on observable quantities only."""
-    budgets: Dict[str, float]   # remaining per module
-    slas_ms: Dict[str, float]   # configured SLA per module
+
+    budgets: dict[str, float]  # remaining per module
+    slas_ms: dict[str, float]  # configured SLA per module
 
 
 DEFAULT_DEGRADATION_MODES = {"FULL", "REDUCED", "MINIMAL", "SAFE"}
@@ -57,7 +59,9 @@ def validate_system_scalars(state: SystemScalars, *, allow_negative_energy: bool
         raise InvariantViolation(f"MOD-001 unknown degradation_mode: {state.degradation_mode}")
 
 
-def validate_budget_snapshot(snapshot: BudgetSnapshot, *, known_modules: Optional[Iterable[str]] = None) -> None:
+def validate_budget_snapshot(
+    snapshot: BudgetSnapshot, *, known_modules: Iterable[str] | None = None
+) -> None:
     """
     Budget contract.
 

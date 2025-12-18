@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
 
 import numpy as np
 
@@ -14,7 +13,7 @@ class AnomalyDetector:
         self.z_thresh = z_thresh
         self.min_std = min_std
         self.window = window
-        self.samples: Dict[str, List[float]] = {}
+        self.samples: dict[str, list[float]] = {}
 
     def add_sample(self, name: str, value: float) -> None:
         buf = self.samples.setdefault(name, [])
@@ -37,15 +36,15 @@ class AnomalyDetector:
 @dataclass
 class BudgetHealth:
     healthy: bool
-    deficits: Dict[str, float] = field(default_factory=dict)
+    deficits: dict[str, float] = field(default_factory=dict)
 
 
 class BudgetHealthMonitor:
-    def __init__(self, thresholds: Dict[str, float]) -> None:
+    def __init__(self, thresholds: dict[str, float]) -> None:
         self.thresholds = thresholds
 
     def check_health(self, budget_manager: object) -> BudgetHealth:
-        deficits: Dict[str, float] = {}
+        deficits: dict[str, float] = {}
         mods = getattr(budget_manager, "modules", {})
         for name, mod in mods.items():
             remaining = getattr(mod, "budget_remaining", 0.0)
@@ -64,7 +63,7 @@ class GracefulDegradation:
         battery: float,
         user_energy: float,
         health: BudgetHealth,
-        thresholds: Tuple[float, float] = (10.0, 20.0),
+        thresholds: tuple[float, float] = (10.0, 20.0),
     ) -> str:
         batt_th, energy_th = thresholds
         if battery <= batt_th or user_energy <= energy_th:
@@ -77,4 +76,4 @@ class GracefulDegradation:
 
     def apply_mode(self, system: object) -> None:
         # Lightweight hook for future mode-dependent behavior.
-        setattr(system, "degradation_mode", self.mode)
+        system.degradation_mode = self.mode

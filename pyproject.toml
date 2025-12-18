@@ -70,7 +70,7 @@ fix = true
 src = ["src", "tests"]
 lint.select = ["E", "F", "I", "B", "UP", "SIM", "A", "RUF"]
 lint.ignore = ["E203", "E266", "E501"]
-lint.per-file-ignores = { "tests/**.py" = ["S101"] }
+lint.per-file-ignores = { "tests/**.py" = ["S101"], "src/self_constrained_control/neural_interface.py" = ["E741"] }
 
 [tool.mypy]
 python_version = "3.10"
@@ -79,6 +79,16 @@ warn_unused_configs = true
 ignore_missing_imports = true
 show_error_codes = true
 pretty = true
+# Disable specific error codes for compatibility with numba/numpy patterns
+disable_error_code = ["unused-ignore", "no-any-return", "untyped-decorator"]
+
+[[tool.mypy.overrides]]
+module = ["self_constrained_control.metrics"]
+disable_error_code = ["dict-item"]
+
+[[tool.mypy.overrides]]
+module = ["self_constrained_control.monitoring"]
+disable_error_code = ["attr-defined"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

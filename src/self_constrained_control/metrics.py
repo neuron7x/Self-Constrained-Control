@@ -5,14 +5,14 @@ import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class MetricsCollector:
-    latencies_s: Dict[str, List[float]] = field(default_factory=dict)
+    latencies_s: dict[str, list[float]] = field(default_factory=dict)
     battery_level: float = 0.0
     user_energy_level: float = 0.0
     bellman_error: float = 0.0
@@ -20,7 +20,7 @@ class MetricsCollector:
     def record_latency(self, name: str, duration_s: float) -> None:
         self.latencies_s.setdefault(name, []).append(float(duration_s))
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         return {
             "ts": time.time(),
             "battery": self.battery_level,
@@ -46,7 +46,7 @@ class MetricsCollector:
         p = Path(path)
         p.parent.mkdir(parents=True, exist_ok=True)
 
-        rows: List[Dict[str, float]] = []
+        rows: list[dict[str, float]] = []
         for name, vals in self.latencies_s.items():
             for v in vals:
                 rows.append({"metric": f"latency.{name}", "value": float(v)})
