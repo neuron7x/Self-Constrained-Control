@@ -11,4 +11,3 @@ Initial public scaffold for **Self-Constrained-Control**:
 - Stability-aware planner module (RL + control-theory checks) and actuator stub.
 - Runtime contracts and invariant IDs + traceability-oriented docs.
 - CI, tests, linting, and repo hygiene files (security policy, contributing, code of conduct).
-

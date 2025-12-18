@@ -48,13 +48,22 @@ python -m self_constrained_control.cli run --config data/n1_config.yaml --action
 - `docs/` — architecture, requirements, API, deployment notes
 - `data/n1_config.yaml` — config
 
-## Developer commands
+## Developer Quickstart
 
 ```bash
-ruff check .
-ruff format .
-mypy src
-pytest
+# Setup (one-time)
+pip install -e ".[dev]"
+pre-commit install
+
+# Daily workflow (using make)
+make fmt          # Format code
+make lint         # Lint with auto-fix
+make type         # Type check
+make test         # Run tests with coverage
+make all          # Run all checks
+
+# Or run pre-commit on all files
+make pre-commit
 ```
 
 ## License
