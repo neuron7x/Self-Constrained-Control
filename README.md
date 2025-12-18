@@ -82,6 +82,7 @@ Apache-2.0
 - `docs/FORMALIZATION.md` — formal model, invariants, and runtime contract IDs
 - `docs/ARGUMENTATION.md` — claim → mechanism → evidence argument (grounded engineering)
 - `docs/INTERFACE_CONTRACTS.md` — stable module interfaces and guarantees
+- `docs/ARCHITECTURE_GAP_ANALYSIS.md` — prioritized gaps and PR stack for architectural maturity
 - `docs/SAFETY_CASE.md` — safety argument + evidence pointers
 - `docs/TRACEABILITY.md` — requirements ↔ tests ↔ implementation
 - `docs/DOCUMENTATION_PROMPT_RESPONSE.md` — coverage of documentation/testing/CI/security items from the UA prompt
