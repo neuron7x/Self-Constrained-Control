@@ -30,4 +30,3 @@ That misunderstanding creates real safety and reputational risk.
 
 - *No boundary*: rejected due to high ambiguity and risk.
 - *Pretend full production hardware system*: rejected as unverifiable.
-
