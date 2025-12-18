@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import pytest
 import numpy as np
+import pytest
 
 from self_constrained_control.neural_interface import (
     DetailedMetabolicState,
@@ -9,6 +9,7 @@ from self_constrained_control.neural_interface import (
     apply_sparse_correlation,
     hh_dynamics_vectorized,
 )
+
 
 @pytest.mark.asyncio
 async def test_simulator_rates_shape_and_range():
@@ -18,6 +19,7 @@ async def test_simulator_rates_shape_and_range():
     assert np.all(np.isfinite(rates))
     assert np.min(rates) >= 0.0
     assert np.max(rates) <= sim.max_firing_hz + 1e-6
+
 
 @pytest.mark.asyncio
 async def test_decode_energy_range():
@@ -29,9 +31,13 @@ async def test_decode_energy_range():
 
 def test_atp_normalization():
     metabolic = DetailedMetabolicState()
-    cost_1024 = metabolic.update(dt=0.001, spike_count=1024, I_total=5.0, pump_rate=1e-18, n_neurons=1024)
+    cost_1024 = metabolic.update(
+        dt=0.001, spike_count=1024, I_total=5.0, pump_rate=1e-18, n_neurons=1024
+    )
     metabolic = DetailedMetabolicState()
-    cost_512 = metabolic.update(dt=0.001, spike_count=512, I_total=5.0, pump_rate=1e-18, n_neurons=512)
+    cost_512 = metabolic.update(
+        dt=0.001, spike_count=512, I_total=5.0, pump_rate=1e-18, n_neurons=512
+    )
     assert abs(cost_1024 - cost_512) < 0.1 * cost_1024
 
 
@@ -72,7 +78,9 @@ def test_sparse_correlation_efficiency():
 
     start = time.perf_counter()
     for _ in range(100):
-        _ = apply_sparse_correlation(firing_rates, sim.cov_indices, sim.cov_indptr, sim.cov_data, noise_scale=0.1)
+        _ = apply_sparse_correlation(
+            firing_rates, sim.cov_indices, sim.cov_indptr, sim.cov_data, noise_scale=0.1
+        )
     elapsed = time.perf_counter() - start
 
     assert elapsed < 0.2

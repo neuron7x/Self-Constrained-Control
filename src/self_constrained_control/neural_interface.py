@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, Optional, Tuple
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
+
 
 def _vtrap_py(x: float, y: float) -> float:
     """Numerically stable x/(1-exp(-x/y)) with correct limit as x->0 (returns y)."""
@@ -15,9 +15,9 @@ def _vtrap_py(x: float, y: float) -> float:
     return x / (1.0 - float(np.exp(-x / y)))
 
 
-
 try:
     from numba import njit, prange  # type: ignore
+
     _HAVE_NUMBA = True
 except Exception:  # pragma: no cover
     _HAVE_NUMBA = False
@@ -31,7 +31,7 @@ def _safe_div(x: float, y: float, eps: float = 1e-9) -> float:
     return x / y
 
 
-def _build_neighbor_graph(n: int, k_neighbors: int = 8) -> Tuple[np.ndarray, np.ndarray]:
+def _build_neighbor_graph(n: int, k_neighbors: int = 8) -> tuple[np.ndarray, np.ndarray]:
     # Returns (neighbors, weights) arrays of shape (n, k)
     k = max(1, k_neighbors)
     neighbors = np.zeros((n, k), dtype=np.int32)
@@ -57,6 +57,7 @@ def _build_neighbor_graph(n: int, k_neighbors: int = 8) -> Tuple[np.ndarray, np.
 
 
 if _HAVE_NUMBA:
+
     @njit(fastmath=True, cache=True)  # type: ignore[misc]
     def _vtrap_nb(x: float, y: float) -> float:
         if abs(x) < 1e-7:
@@ -65,11 +66,20 @@ if _HAVE_NUMBA:
 
     @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
     def _hh_step(
-        V: np.ndarray, m: np.ndarray, h: np.ndarray, n: np.ndarray,
-        I: np.ndarray, dt: float,
-        g_Na: float, g_K: float, g_L: float,
-        E_Na: float, E_K: float, E_L: float,
-        C_m: float, temp_factor: float,
+        V: np.ndarray,
+        m: np.ndarray,
+        h: np.ndarray,
+        n: np.ndarray,
+        I: np.ndarray,
+        dt: float,
+        g_Na: float,
+        g_K: float,
+        g_L: float,
+        E_Na: float,
+        E_K: float,
+        E_L: float,
+        C_m: float,
+        temp_factor: float,
     ) -> None:
         for i in prange(V.shape[0]):
             # HH rate constants (with numerical stability guards)
@@ -95,9 +105,10 @@ if _HAVE_NUMBA:
             h[i] = min(1.0, max(0.0, h[i] + dh * dt))
             n[i] = min(1.0, max(0.0, n[i] + dn * dt))
 
-
     @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
-    def _apply_neighbors(rates: np.ndarray, neighbors: np.ndarray, weights: np.ndarray, noise_scale: float) -> np.ndarray:
+    def _apply_neighbors(
+        rates: np.ndarray, neighbors: np.ndarray, weights: np.ndarray, noise_scale: float
+    ) -> np.ndarray:
         out = rates.copy()
         for i in prange(rates.shape[0]):
             s = 0.0
@@ -123,7 +134,7 @@ if _HAVE_NUMBA:
         E_L: float,
         C_m: float,
         temp_factor: float,
-    ) -> Tuple[np.ndarray, np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+    ) -> tuple[np.ndarray, np.ndarray, tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
         V_local = V.copy()
         m_local = m.copy()
         h_local = h.copy()
@@ -173,12 +184,22 @@ if _HAVE_NUMBA:
         return out
 
 else:
+
     def _hh_step(
-        V: np.ndarray, m: np.ndarray, h: np.ndarray, n: np.ndarray,
-        I: np.ndarray, dt: float,
-        g_Na: float, g_K: float, g_L: float,
-        E_Na: float, E_K: float, E_L: float,
-        C_m: float, temp_factor: float,
+        V: np.ndarray,
+        m: np.ndarray,
+        h: np.ndarray,
+        n: np.ndarray,
+        I: np.ndarray,
+        dt: float,
+        g_Na: float,
+        g_K: float,
+        g_L: float,
+        E_Na: float,
+        E_K: float,
+        E_L: float,
+        C_m: float,
+        temp_factor: float,
     ) -> None:
         """Pure-Python HH step (Numba-unavailable fallback)."""
         for i in range(V.shape[0]):
@@ -207,8 +228,8 @@ else:
             h_i = 0.0 if h_i < 0.0 else (1.0 if h_i > 1.0 else h_i)
             n_i = 0.0 if n_i < 0.0 else (1.0 if n_i > 1.0 else n_i)
 
-            I_Na = g_Na * (m_i ** 3) * h_i * (v - E_Na)
-            I_K = g_K * (n_i ** 4) * (v - E_K)
+            I_Na = g_Na * (m_i**3) * h_i * (v - E_Na)
+            I_K = g_K * (n_i**4) * (v - E_K)
             I_L = g_L * (v - E_L)
             dV = (-I_Na - I_K - I_L + float(I[i])) / C_m
 
@@ -217,7 +238,9 @@ else:
             h[i] = h_i
             n[i] = n_i
 
-    def _apply_neighbors(rates: np.ndarray, neighbors: np.ndarray, weights: np.ndarray, noise_scale: float) -> np.ndarray:
+    def _apply_neighbors(
+        rates: np.ndarray, neighbors: np.ndarray, weights: np.ndarray, noise_scale: float
+    ) -> np.ndarray:
         """Pure-Python sparse-neighbor correlation apply (Numba-unavailable fallback)."""
         out = rates.copy()
         for i in range(rates.shape[0]):
@@ -246,7 +269,7 @@ else:
         E_L: float,
         C_m: float,
         temp_factor: float,
-    ) -> Tuple[np.ndarray, np.ndarray, Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+    ) -> tuple[np.ndarray, np.ndarray, tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
         V_local = V.copy()
         m_local = m.copy()
         h_local = h.copy()
@@ -294,6 +317,7 @@ else:
             out[i] = float(rates[i]) + float(noise_scale) * s
         return out
 
+
 def apply_sparse_correlation(
     rates: np.ndarray,
     indices: np.ndarray,
@@ -312,7 +336,6 @@ def apply_sparse_correlation(
     return out
 
 
-
 @dataclass
 class DetailedMetabolicState:
     ATP: float = 5.0e-3
@@ -327,11 +350,11 @@ class DetailedMetabolicState:
     def update(
         self,
         dt: float,
-        spike_count: Optional[int] = None,
+        spike_count: int | None = None,
         I_total: float = 0.0,
         pump_rate: float = 0.0,
         n_neurons: int = 1024,
-        total_spikes: Optional[int] = None,
+        total_spikes: int | None = None,
     ) -> float:
         ATP_per_spike_per_neuron = 1.67e-18
         spikes = float(spike_count if spike_count is not None else total_spikes or 0)
@@ -367,7 +390,7 @@ class N1DataValidator:
         self.expected_channels = expected_channels
         self.max_rate_hz = max_rate_hz
 
-    def validate(self, rates: np.ndarray) -> Tuple[bool, str]:
+    def validate(self, rates: np.ndarray) -> tuple[bool, str]:
         if rates.shape != (self.expected_channels,):
             return False, f"shape mismatch {rates.shape} != ({self.expected_channels},)"
         if not np.all(np.isfinite(rates)):
@@ -379,7 +402,7 @@ class N1DataValidator:
 
 class IntentionDecoder:
     def __init__(self) -> None:
-        self.thresholds: Dict[str, float] = {"move_arm": 30.0, "plan_route": 15.0, "stop": 0.0}
+        self.thresholds: dict[str, float] = {"move_arm": 30.0, "plan_route": 15.0, "stop": 0.0}
 
     async def decode_intent(self, firing_rates: np.ndarray) -> str:
         mean_rate = float(np.mean(firing_rates))
@@ -396,7 +419,7 @@ class N1Simulator:
         n_channels: int = 128,
         sim_window_s: float = 0.02,
         max_firing_hz: float = 200.0,
-        seed: Optional[int] = None,
+        seed: int | None = None,
     ) -> None:
         self.tau = float(tau)
         self.channels = int(n_channels)
@@ -459,19 +482,42 @@ class N1Simulator:
         if _HAVE_NUMBA:
             # Integrate
             for _ in range(n_steps):
-                _hh_step(self.V, self.m, self.h, self.n, I, dt,
-                         self.g_Na, self.g_K, self.g_L, self.E_Na, self.E_K, self.E_L,
-                         self.C_m, self.temp_factor)
+                _hh_step(
+                    self.V,
+                    self.m,
+                    self.h,
+                    self.n,
+                    I,
+                    dt,
+                    self.g_Na,
+                    self.g_K,
+                    self.g_L,
+                    self.E_Na,
+                    self.E_K,
+                    self.E_L,
+                    self.C_m,
+                    self.temp_factor,
+                )
         else:
             # Numba-less fallback (slower, but correct)
             for _ in range(n_steps):
                 for i in range(self.channels):
                     v = float(self.V[i])
-                    a_m = self.temp_factor * 0.1 * (v + 40.0) / max(1e-9, (1.0 - np.exp(-(v + 40.0) / 10.0)))
+                    a_m = (
+                        self.temp_factor
+                        * 0.1
+                        * (v + 40.0)
+                        / max(1e-9, (1.0 - np.exp(-(v + 40.0) / 10.0)))
+                    )
                     b_m = self.temp_factor * 4.0 * np.exp(-(v + 65.0) / 18.0)
                     a_h = self.temp_factor * 0.07 * np.exp(-(v + 65.0) / 20.0)
                     b_h = self.temp_factor * 1.0 / (1.0 + np.exp(-(v + 35.0) / 10.0))
-                    a_n = self.temp_factor * 0.01 * (v + 55.0) / max(1e-9, (1.0 - np.exp(-(v + 55.0) / 10.0)))
+                    a_n = (
+                        self.temp_factor
+                        * 0.01
+                        * (v + 55.0)
+                        / max(1e-9, (1.0 - np.exp(-(v + 55.0) / 10.0)))
+                    )
                     b_n = self.temp_factor * 0.125 * np.exp(-(v + 65.0) / 80.0)
 
                     I_Na = self.g_Na * (float(self.m[i]) ** 3) * float(self.h[i]) * (v - self.E_Na)

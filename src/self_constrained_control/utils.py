@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import pickle
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, TypeVar
+from typing import Any, TypeVar
 
 import yaml
 
@@ -22,7 +22,7 @@ def setup_logging(level: int = logging.INFO) -> None:
     )
 
 
-def load_config(path: str) -> Dict[str, Any]:
+def load_config(path: str) -> dict[str, Any]:
     p = Path(path)
     if not p.exists():
         raise FileNotFoundError(path)
@@ -38,7 +38,7 @@ class CircuitBreaker:
     reset_timeout_s: float = 60.0
 
     failures: int = 0
-    opened_at: Optional[float] = None
+    opened_at: float | None = None
 
     async def call(self, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Any:
         now = time.time()

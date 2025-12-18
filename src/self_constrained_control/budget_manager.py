@@ -3,9 +3,8 @@ from __future__ import annotations
 import hashlib
 import logging
 import time
-from dataclasses import dataclass, field
-from typing import Deque, Dict, List, Tuple
 from collections import deque
+from dataclasses import dataclass, field
 
 import numpy as np
 
@@ -20,7 +19,7 @@ class AdaptiveModuleBudget:
     budget_remaining: float = field(init=False)
     usage: float = 0.0
     penalty_rate: float = 0.2
-    violation_history: List[float] = field(default_factory=list)
+    violation_history: list[float] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.budget_remaining = float(self.initial_budget)
@@ -40,7 +39,10 @@ class AdaptiveModuleBudget:
             ratio = overspend / max(1.0, self.initial_budget)
             self.violation_history.append(ratio)
             rate = self.penalty_rate
-            if len(self.violation_history) >= 3 and float(np.mean(self.violation_history[-3:])) > 0.5:
+            if (
+                len(self.violation_history) >= 3
+                and float(np.mean(self.violation_history[-3:])) > 0.5
+            ):
                 rate *= 1.5
             self.budget_remaining = max(0.0, self.budget_remaining - rate * overspend)
         self.usage = 0.0
@@ -50,9 +52,9 @@ class AdaptiveModuleBudget:
 
 
 class BudgetManager:
-    def __init__(self, global_pool: float, module_configs: Dict[str, Tuple[float, float]]) -> None:
+    def __init__(self, global_pool: float, module_configs: dict[str, tuple[float, float]]) -> None:
         self.global_pool = float(global_pool)
-        self.modules: Dict[str, AdaptiveModuleBudget] = {
+        self.modules: dict[str, AdaptiveModuleBudget] = {
             name: AdaptiveModuleBudget(initial_budget=float(b), sla_ms=float(sla))
             for name, (b, sla) in module_configs.items()
         }
@@ -85,7 +87,7 @@ class AuctionBudgetManager(BudgetManager):
         return 1.0 - min(1.0, m.budget_remaining / max(1.0, m.initial_budget))
 
     def allocate_cycle(self) -> None:
-        requests: List[Tuple[str, float, float]] = []
+        requests: list[tuple[str, float, float]] = []
         for name, m in self.modules.items():
             amount = 0.10 * m.initial_budget
             score = self._priority(name) * self._urgency(name)
@@ -102,9 +104,9 @@ class AuctionBudgetManager(BudgetManager):
 
 
 class PredictiveBudgetManager(AuctionBudgetManager):
-    def __init__(self, global_pool: float, module_configs: Dict[str, Tuple[float, float]]) -> None:
+    def __init__(self, global_pool: float, module_configs: dict[str, tuple[float, float]]) -> None:
         super().__init__(global_pool, module_configs)
-        self.usage_history: Dict[str, Deque[float]] = {k: deque(maxlen=10) for k in self.modules}
+        self.usage_history: dict[str, deque[float]] = {k: deque(maxlen=10) for k in self.modules}
 
     def predict_next_usage(self, name: str) -> float:
         hist = self.usage_history[name]
@@ -131,20 +133,22 @@ class PredictiveBudgetManager(AuctionBudgetManager):
 
 
 class GameTheoreticBudgetManager(PredictiveBudgetManager):
-    def __init__(self, global_pool: float, module_configs: Dict[str, Tuple[float, float]]) -> None:
+    def __init__(self, global_pool: float, module_configs: dict[str, tuple[float, float]]) -> None:
         super().__init__(global_pool, module_configs)
-        self._cache: Dict[str, Dict[str, float]] = {}
+        self._cache: dict[str, dict[str, float]] = {}
         self._cache_ttl_s = 1.0
         self._cache_t = 0.0
 
-    def find_nash_equilibrium(self) -> Dict[str, float]:
+    def find_nash_equilibrium(self) -> dict[str, float]:
         now = time.time()
-        key_payload = "|".join(f"{k}:{m.budget_remaining:.1f}" for k, m in sorted(self.modules.items()))
+        key_payload = "|".join(
+            f"{k}:{m.budget_remaining:.1f}" for k, m in sorted(self.modules.items())
+        )
         key = hashlib.md5(key_payload.encode("utf-8")).hexdigest()
         if key in self._cache and (now - self._cache_t) < self._cache_ttl_s:
             return self._cache[key]
 
-        strategies: Dict[str, float] = {}
+        strategies: dict[str, float] = {}
         for _ in range(10):
             for name, m in self.modules.items():
                 others = sum(mm.budget_remaining for k, mm in self.modules.items() if k != name)
@@ -155,7 +159,9 @@ class GameTheoreticBudgetManager(PredictiveBudgetManager):
                 strategies[name] = float(optimal)
 
             # relaxed convergence
-            if all(abs(strategies[n] - self.modules[n].budget_remaining) < 5.0 for n in self.modules):
+            if all(
+                abs(strategies[n] - self.modules[n].budget_remaining) < 5.0 for n in self.modules
+            ):
                 break
 
         self._cache[key] = strategies
@@ -164,8 +170,8 @@ class GameTheoreticBudgetManager(PredictiveBudgetManager):
 
     def negotiate_resources(self) -> None:
         # Simple lending from surplus to deficit based on usage ratio
-        surplus: List[Tuple[str, float]] = []
-        deficit: List[Tuple[str, float]] = []
+        surplus: list[tuple[str, float]] = []
+        deficit: list[tuple[str, float]] = []
         for name, m in self.modules.items():
             if m.budget_remaining > 1.5 * max(1.0, m.usage):
                 surplus.append((name, m.budget_remaining - m.usage))

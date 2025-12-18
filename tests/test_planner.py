@@ -4,6 +4,7 @@ import numpy as np
 
 from self_constrained_control.planner_module import PlannerModule
 
+
 def test_planner_decision_in_range():
     p = PlannerModule()
     s = np.array([80.0, 80.0], dtype=np.float32)
