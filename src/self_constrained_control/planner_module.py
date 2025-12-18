@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 logger = logging.getLogger(__name__)
 
@@ -12,12 +14,12 @@ class LyapunovStabilityAnalyzer:
     def __init__(self) -> None:
         self.P = np.array([[2.0, 0.1], [0.1, 2.0]], dtype=np.float32)
 
-    def V(self, state: np.ndarray, target: np.ndarray) -> float:
+    def V(self, state: npt.NDArray[Any], target: npt.NDArray[Any]) -> float:
         err = state - target
         return float(err.T @ self.P @ err)
 
     def stable(
-        self, state: np.ndarray, next_state: np.ndarray, target: np.ndarray
+        self, state: npt.NDArray[Any], next_state: npt.NDArray[Any], target: npt.NDArray[Any]
     ) -> tuple[bool, float]:
         dv = self.V(next_state, target) - self.V(state, target)
         return dv < 0.0, float(dv)
@@ -32,9 +34,9 @@ class LQRController:
         self.B = 0.1 * rng.standard_normal((state_size, action_size)).astype(np.float32)
         self.Q = np.eye(state_size, dtype=np.float32) * 10.0
         self.R = np.eye(action_size, dtype=np.float32) * 1.0
-        self.K: np.ndarray | None = None
+        self.K: npt.NDArray[Any] | None = None
 
-    def _solve(self, max_iter: int = 500, tol: float = 1e-6) -> np.ndarray:
+    def _solve(self, max_iter: int = 500, tol: float = 1e-6) -> npt.NDArray[Any]:
         P = self.Q.copy()
         for _ in range(max_iter):
             inv = np.linalg.inv(self.R + self.B.T @ P @ self.B)
@@ -48,7 +50,7 @@ class LQRController:
         self.K = np.linalg.inv(self.R + self.B.T @ P @ self.B) @ self.B.T @ P @ self.A
         return self.K
 
-    def control(self, state: np.ndarray, target: np.ndarray) -> np.ndarray:
+    def control(self, state: npt.NDArray[Any], target: npt.NDArray[Any]) -> npt.NDArray[Any]:
         if self.K is None:
             self._solve()
         err = state - target
@@ -89,7 +91,7 @@ class PlannerModule:
         r, c, s = base + noise
         return float(r), float(c), float(s)
 
-    def decide_rule_based(self, state: np.ndarray) -> int:
+    def decide_rule_based(self, state: npt.NDArray[Any]) -> int:
         if self.force_simplify:
             return 1
         battery, energy = float(state[0]), float(state[1])
@@ -99,7 +101,7 @@ class PlannerModule:
             return 1
         return 2
 
-    def decide_with_stability(self, state: np.ndarray) -> int:
+    def decide_with_stability(self, state: npt.NDArray[Any]) -> int:
         u = self.lqr.control(state, self.target_state)
         action_lqr = int(np.clip(int(np.argmax(u)), 0, self.cfg.action_size - 1))
         # candidate actions: lqr then rule-based
@@ -119,7 +121,7 @@ class PlannerModule:
         ][action_idx]
 
     def compute_bellman_error(
-        self, state: np.ndarray, action: int, reward: float, next_state: np.ndarray
+        self, state: npt.NDArray[Any], action: int, reward: float, next_state: npt.NDArray[Any]
     ) -> float:
         # Scaffold TD proxy (kept deterministic & torch-free).
         r, c, _ = self.estimate_params(action)

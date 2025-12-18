@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,9 @@ def _safe_div(x: float, y: float, eps: float = 1e-9) -> float:
     return x / y
 
 
-def _build_neighbor_graph(n: int, k_neighbors: int = 8) -> tuple[np.ndarray, np.ndarray]:
+def _build_neighbor_graph(
+    n: int, k_neighbors: int = 8
+) -> tuple[npt.NDArray[Any], npt.NDArray[Any]]:
     # Returns (neighbors, weights) arrays of shape (n, k)
     k = max(1, k_neighbors)
     neighbors = np.zeros((n, k), dtype=np.int32)
@@ -66,11 +70,11 @@ if _HAVE_NUMBA:
 
     @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
     def _hh_step(
-        V: np.ndarray,
-        m: np.ndarray,
-        h: np.ndarray,
-        n: np.ndarray,
-        I: np.ndarray,
+        V: npt.NDArray[Any],
+        m: npt.NDArray[Any],
+        h: npt.NDArray[Any],
+        n: npt.NDArray[Any],
+        I: npt.NDArray[Any],
         dt: float,
         g_Na: float,
         g_K: float,
@@ -107,8 +111,11 @@ if _HAVE_NUMBA:
 
     @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
     def _apply_neighbors(
-        rates: np.ndarray, neighbors: np.ndarray, weights: np.ndarray, noise_scale: float
-    ) -> np.ndarray:
+        rates: npt.NDArray[Any],
+        neighbors: npt.NDArray[Any],
+        weights: npt.NDArray[Any],
+        noise_scale: float,
+    ) -> npt.NDArray[Any]:
         out = rates.copy()
         for i in prange(rates.shape[0]):
             s = 0.0
@@ -119,11 +126,11 @@ if _HAVE_NUMBA:
 
     @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
     def hh_dynamics_vectorized(
-        V: np.ndarray,
-        m: np.ndarray,
-        h: np.ndarray,
-        n: np.ndarray,
-        I_inj: np.ndarray,
+        V: npt.NDArray[Any],
+        m: npt.NDArray[Any],
+        h: npt.NDArray[Any],
+        n: npt.NDArray[Any],
+        I_inj: npt.NDArray[Any],
         dt: float,
         n_steps: int,
         g_Na: float,
@@ -134,7 +141,11 @@ if _HAVE_NUMBA:
         E_L: float,
         C_m: float,
         temp_factor: float,
-    ) -> tuple[np.ndarray, np.ndarray, tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+    ) -> tuple[
+        npt.NDArray[Any],
+        npt.NDArray[Any],
+        tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]],
+    ]:
         V_local = V.copy()
         m_local = m.copy()
         h_local = h.copy()
@@ -166,12 +177,12 @@ if _HAVE_NUMBA:
 
     @njit(parallel=True, fastmath=True, cache=True)  # type: ignore[misc]
     def apply_sparse_correlation_nb(
-        rates: np.ndarray,
-        indices: np.ndarray,
-        indptr: np.ndarray,
-        data: np.ndarray,
+        rates: npt.NDArray[Any],
+        indices: npt.NDArray[Any],
+        indptr: npt.NDArray[Any],
+        data: npt.NDArray[Any],
         noise_scale: float,
-    ) -> np.ndarray:
+    ) -> npt.NDArray[Any]:
         out = rates.copy()
         n_rows = indptr.shape[0] - 1
         for i in prange(n_rows):
@@ -186,11 +197,11 @@ if _HAVE_NUMBA:
 else:
 
     def _hh_step(
-        V: np.ndarray,
-        m: np.ndarray,
-        h: np.ndarray,
-        n: np.ndarray,
-        I: np.ndarray,
+        V: npt.NDArray[Any],
+        m: npt.NDArray[Any],
+        h: npt.NDArray[Any],
+        n: npt.NDArray[Any],
+        I: npt.NDArray[Any],
         dt: float,
         g_Na: float,
         g_K: float,
@@ -239,8 +250,11 @@ else:
             n[i] = n_i
 
     def _apply_neighbors(
-        rates: np.ndarray, neighbors: np.ndarray, weights: np.ndarray, noise_scale: float
-    ) -> np.ndarray:
+        rates: npt.NDArray[Any],
+        neighbors: npt.NDArray[Any],
+        weights: npt.NDArray[Any],
+        noise_scale: float,
+    ) -> npt.NDArray[Any]:
         """Pure-Python sparse-neighbor correlation apply (Numba-unavailable fallback)."""
         out = rates.copy()
         for i in range(rates.shape[0]):
@@ -254,11 +268,11 @@ else:
         return out
 
     def hh_dynamics_vectorized(
-        V: np.ndarray,
-        m: np.ndarray,
-        h: np.ndarray,
-        n: np.ndarray,
-        I_inj: np.ndarray,
+        V: npt.NDArray[Any],
+        m: npt.NDArray[Any],
+        h: npt.NDArray[Any],
+        n: npt.NDArray[Any],
+        I_inj: npt.NDArray[Any],
         dt: float,
         n_steps: int,
         g_Na: float,
@@ -269,7 +283,11 @@ else:
         E_L: float,
         C_m: float,
         temp_factor: float,
-    ) -> tuple[np.ndarray, np.ndarray, tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]]:
+    ) -> tuple[
+        npt.NDArray[Any],
+        npt.NDArray[Any],
+        tuple[npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any], npt.NDArray[Any]],
+    ]:
         V_local = V.copy()
         m_local = m.copy()
         h_local = h.copy()
@@ -300,12 +318,12 @@ else:
         return V_trace, spike_counts, (V_local, m_local, h_local, n_local)
 
     def apply_sparse_correlation_nb(
-        rates: np.ndarray,
-        indices: np.ndarray,
-        indptr: np.ndarray,
-        data: np.ndarray,
+        rates: npt.NDArray[Any],
+        indices: npt.NDArray[Any],
+        indptr: npt.NDArray[Any],
+        data: npt.NDArray[Any],
         noise_scale: float,
-    ) -> np.ndarray:
+    ) -> npt.NDArray[Any]:
         out = rates.copy()
         n_rows = indptr.shape[0] - 1
         for i in range(n_rows):
@@ -319,12 +337,12 @@ else:
 
 
 def apply_sparse_correlation(
-    rates: np.ndarray,
-    indices: np.ndarray,
-    indptr: np.ndarray,
-    data: np.ndarray,
+    rates: npt.NDArray[Any],
+    indices: npt.NDArray[Any],
+    indptr: npt.NDArray[Any],
+    data: npt.NDArray[Any],
     noise_scale: float = 0.1,
-) -> np.ndarray:
+) -> npt.NDArray[Any]:
     out = rates.copy()
     n_rows = indptr.shape[0] - 1
     for i in range(n_rows):
@@ -380,7 +398,7 @@ class NeuromodulationController:
         else:
             self.norepinephrine = float(np.clip(self.norepinephrine - 0.05, 0.5, 2.0))
 
-    def modulate(self, base_current: np.ndarray) -> np.ndarray:
+    def modulate(self, base_current: npt.NDArray[Any]) -> npt.NDArray[Any]:
         scale = self.dopamine * (0.5 + 0.5 * self.norepinephrine)
         return base_current * float(scale)
 
@@ -390,7 +408,7 @@ class N1DataValidator:
         self.expected_channels = expected_channels
         self.max_rate_hz = max_rate_hz
 
-    def validate(self, rates: np.ndarray) -> tuple[bool, str]:
+    def validate(self, rates: npt.NDArray[Any]) -> tuple[bool, str]:
         if rates.shape != (self.expected_channels,):
             return False, f"shape mismatch {rates.shape} != ({self.expected_channels},)"
         if not np.all(np.isfinite(rates)):
@@ -404,7 +422,7 @@ class IntentionDecoder:
     def __init__(self) -> None:
         self.thresholds: dict[str, float] = {"move_arm": 30.0, "plan_route": 15.0, "stop": 0.0}
 
-    async def decode_intent(self, firing_rates: np.ndarray) -> str:
+    async def decode_intent(self, firing_rates: npt.NDArray[Any]) -> str:
         mean_rate = float(np.mean(firing_rates))
         for intent, thr in sorted(self.thresholds.items(), key=lambda x: x[1], reverse=True):
             if mean_rate > thr:
@@ -472,7 +490,7 @@ class N1Simulator:
         self.cov_data = np.array(data, dtype=np.float32)
         self.cov_indptr = np.array(indptr, dtype=np.int32)
 
-    async def get_neural_spikes(self) -> np.ndarray:
+    async def get_neural_spikes(self) -> npt.NDArray[Any]:
         dt = 1.0 / self.sampling_rate_hz
         n_steps = int(self.sim_window_s / dt)
         # Baseline injected current
@@ -574,7 +592,7 @@ class N1Simulator:
             raise ValueError(msg)
         return rates
 
-    def decode_energy(self, firing_rates: np.ndarray) -> float:
+    def decode_energy(self, firing_rates: npt.NDArray[Any]) -> float:
         mean_rate = float(np.mean(firing_rates))
         baseline = 25.0
         energy = 100.0 * (mean_rate / baseline) * float(self.metabolic.ATP / 5.0e-3)
