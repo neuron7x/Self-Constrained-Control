@@ -76,4 +76,4 @@ class GracefulDegradation:
 
     def apply_mode(self, system: object) -> None:
         # Lightweight hook for future mode-dependent behavior.
-        system.degradation_mode = self.mode
+        setattr(system, "degradation_mode", self.mode)
