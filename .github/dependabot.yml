@@ -1,0 +1,59 @@
+# Dependabot Configuration
+# This file configures automated dependency updates and security scanning.
+# See: https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # Python dependencies (pip)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    # Group minor and patch updates together to reduce PR noise
+    groups:
+      python-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    # Reviewers for dependency updates
+    reviewers:
+      - "neuron7x"
+    # Ignore major version bumps for certain packages to avoid breaking changes
+    ignore:
+      - dependency-name: "torch"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 5
+    groups:
+      actions-updates:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+      - "security"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    reviewers:
+      - "neuron7x"
