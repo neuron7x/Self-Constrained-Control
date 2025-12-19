@@ -52,19 +52,20 @@ jobs:
               echo "Checking: $workflow"
               
               # Check for uses: statements without SHA pinning
-              # Pattern: uses: owner/action@tag (where tag is NOT a 40-char hex SHA)
+              # Pattern: uses: owner/action@ref (where ref is NOT a 40-char hex SHA)
               while IFS= read -r line; do
                 # Skip comments
                 if echo "$line" | grep -q '^\s*#'; then
                   continue
                 fi
                 
-                # Check if line contains 'uses:' and doesn't have SHA (40 hex chars)
+                # Check if line contains 'uses:' with an action reference
                 if echo "$line" | grep -qE 'uses:\s+[^@]+@'; then
-                  REF=$(echo "$line" | grep -oE '@[a-zA-Z0-9._-]+' | tail -1 | sed 's/@//')
+                  # Extract the reference after @ (handles tags, branches, and SHAs)
+                  REF=$(echo "$line" | grep -oE '@[a-zA-Z0-9._/-]+' | tail -1 | sed 's/@//')
                   if [ -n "$REF" ]; then
-                    # Check if REF is a 40-character hex string (SHA)
-                    if ! echo "$REF" | grep -qE '^[a-f0-9]{40}$'; then
+                    # Check if REF is a 40-character hex string (SHA) - case insensitive
+                    if ! echo "$REF" | grep -qiE '^[a-f0-9]{40}$'; then
                       echo "⚠️  Unpinned action found: $line"
                       UNPINNED_ACTIONS=$((UNPINNED_ACTIONS + 1))
                     fi

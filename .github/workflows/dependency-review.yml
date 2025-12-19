@@ -28,9 +28,9 @@ jobs:
       - name: Dependency Review
         uses: actions/dependency-review-action@3c4e3dcb1aa7874d2c16be7d79418e9b7efd6261 # v4.8.2
         with:
-          # Fail on high and critical severity vulnerabilities
+          # Fail on high severity (CVSS 7.0-8.9) and critical (CVSS 9.0+) vulnerabilities
           fail-on-severity: high
-          # Fail on CVSS score 7.0 and above
+          # Check both development and runtime dependencies
           fail-on-scopes: development, runtime
           # Add comment to PR with the review results
           comment-summary-in-pr: always
