@@ -25,6 +25,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          fetch-tags: false
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -87,9 +88,18 @@ jobs:
           BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          BASE="${BASE_REF:-main}"
-          git fetch --no-tags --prune origin "${BASE}"
-          git diff --unified=0 "origin/${BASE}"...HEAD > diff.patch
+          BASE="${BASE_REF:-${GITHUB_BASE_REF:-main}}"
+          git fetch --no-tags --prune --depth=0 origin "${BASE}"
+          MB="$(git merge-base "origin/${BASE}" HEAD || true)"
+          if [[ -z "${MB}" ]]; then
+            echo "::error::No merge base between origin/${BASE} and HEAD. Your branch likely has unrelated history or is not rebased. Rebase onto ${BASE} and push again."
+            echo "Debug:"
+            git --no-pager log --oneline -n 20 || true
+            git --no-pager show -s --oneline "origin/${BASE}" || true
+            git --no-pager show -s --oneline HEAD || true
+            exit 1
+          fi
+          git diff --unified=0 "${MB}..HEAD" > diff.patch
           python scripts/diff_coverage.py --coverage coverage.xml --diff diff.patch --threshold 95 --repo-root "$(pwd)"
 
       - name: Upload coverage artifacts
