@@ -157,6 +157,7 @@ class ResourceAwareSystem:
             return
         state = np.array([self.battery, self.user_energy], dtype=np.float32)
         a = self.planner.decide_with_stability(state)
+        self.metrics.set_rl_metrics(self.planner.rl_metrics_snapshot())
         approve = a in (0, 1)
         r, c, _ = self.planner.estimate_params(a)
         next_state = np.maximum(state - np.array([c, 0.5 * c], dtype=np.float32), 0.0)
@@ -191,6 +192,7 @@ class ResourceAwareSystem:
     async def run_loop(self, actions: list[str], epochs: int = 1) -> None:
         wd = WatchdogTimer(self.config.watchdog_timeout_s)
         await self.planner.train(epochs)
+        self.metrics.set_rl_metrics(self.planner.rl_metrics_snapshot())
         for i, act in enumerate(actions, start=1):
             wd.reset()
 
