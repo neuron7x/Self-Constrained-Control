@@ -84,7 +84,7 @@ class ResourceAwareSystem:
         elif isinstance(config, dict):
             self.config = SystemConfig(**config)
         else:
-            raise TypeError("config must be a SystemConfig or dict")
+            raise TypeError("config must be a SystemConfig instance or dict[str, Any]")
         self.config_path = config_path
         self.rng = np.random.default_rng(self.config.seed)
 

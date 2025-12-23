@@ -23,7 +23,8 @@ def test_import_does_not_mutate_root_logger():
 def test_gate_script_passes():
     module_path = Path(__file__).resolve().parents[1] / "scripts" / "ci" / "check_import_side_effects.py"
     spec = importlib.util.spec_from_file_location("check_import_side_effects", module_path)
-    assert spec and spec.loader
+    assert spec is not None, "Module spec not found"
+    assert spec.loader is not None, "Module loader not found"
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert module.main() == 0

@@ -56,8 +56,7 @@ def main() -> int:
 
     if offenders:
         fail(
-            "Import-time side effect: logging.basicConfig() executed at module top-level in "
-            + ", ".join(sorted(offenders))
+            f"Import-time side effect: logging.basicConfig() executed at module top-level in {', '.join(sorted(offenders))}"
         )
 
     print("OK: no import-time logging side effects in core modules")
