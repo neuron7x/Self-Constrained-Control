@@ -89,7 +89,10 @@ jobs:
         run: |
           set -euo pipefail
           BASE="${BASE_REF:-${GITHUB_BASE_REF:-main}}"
-          git fetch --no-tags --prune --depth=0 origin "${BASE}"
+          git fetch --no-tags --prune origin "${BASE}"
+          if [[ "$(git rev-parse --is-shallow-repository)" == "true" ]]; then
+            git fetch --no-tags --prune --unshallow origin "${BASE}"
+          fi
           MB="$(git merge-base "origin/${BASE}" HEAD || true)"
           if [[ -z "${MB}" ]]; then
             echo "::error::No merge base between origin/${BASE} and HEAD. Your branch likely has unrelated history or is not rebased. Rebase onto ${BASE} and push again."
