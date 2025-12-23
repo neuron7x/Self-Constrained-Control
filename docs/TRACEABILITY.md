@@ -23,11 +23,13 @@ This matrix links **Requirements → Implementation → Verification**.
 | REQ-NIF-0003 | Rates bounded to range | `neural_interface.py` | `tests/test_neural_interface.py` | VER-TEST |
 | REQ-DEC-0001 | Decode returns single label | `neural_interface.py` | `tests/test_system.py` | VER-TEST |
 | REQ-PLN-0001 | Planner returns {0,1,2} | `planner_module.py` | `tests/test_planner.py` | VER-TEST |
-| REQ-PLN-0002 | Stability gate applied | `planner_module.py` | `tests/test_planner.py` | VER-TEST |
+| REQ-PLN-0002 | Stability gate applied | `planner_module.py` | `tests/test_planner.py::test_planner_rejects_when_unstable` | VER-TEST |
 | REQ-BUD-0001 | Budgets exist per module | `budget_manager.py` | `tests/test_budget.py` | VER-TEST |
-| REQ-BUD-0002 | Work denied without budget | `budget_manager.py`, `system.py` | `tests/test_budget.py` | VER-TEST |
+| REQ-BUD-0002 | Work denied without budget | `budget_manager.py`, `system.py` | `tests/test_system.py::test_actuator_not_called_when_budget_denied` | VER-TEST |
+| REQ-BUD-0004 | Nash-equilibrium computation cached with TTL | `budget_manager.py` | `tests/test_budget.py::test_nash_equilibrium_cache_ttl` | VER-TEST |
 | REQ-ACT-0001 | Strict mode rejects unknown actions | `actuator_module.py` | `tests/test_integration.py` | VER-TEST |
-| REQ-MON-0001 | Latency metrics exported | `metrics.py` | `tests/test_system.py` | VER-TEST |
+| REQ-MON-0001 | Latency metrics exported | `metrics.py` | `tests/test_system.py::test_metrics_and_state_artifacts` | VER-TEST |
+| REQ-PER-0001 | Per-cycle snapshot recoverable | `utils.py`, `system.py` | `tests/test_system.py::test_metrics_and_state_artifacts` | VER-TEST |
 | REQ-SAF-0001 | Watchdog terminates on stall | `system.py` | `tests/test_system.py` | VER-TEST |
 | REQ-SAF-0002 | Circuit breaker opens after failures | `utils.py` | `tests/test_system.py` | VER-TEST |
 | REQ-QLT-0001 | CI runs ruff/mypy/pytest | `.github/workflows/ci.yml` | (inspection) | VER-INSPECT |

@@ -97,7 +97,11 @@ class ResourceAwareSystem:
         )
         self.decoder = IntentionDecoder()
         self.planner = PlannerModule(
-            state_size=2, action_size=3, gamma=self.config.gamma, epsilon=self.config.epsilon
+            state_size=2,
+            action_size=3,
+            gamma=self.config.gamma,
+            epsilon=self.config.epsilon,
+            seed=self.config.seed,
         )
         self.actuator = ActuatorModule(safety_mode=self.config.safety_mode)
 
@@ -154,7 +158,7 @@ class ResourceAwareSystem:
         state = np.array([self.battery, self.user_energy], dtype=np.float32)
         a = self.planner.decide_with_stability(state)
         approve = a in (0, 1)
-        r, c, _ = PlannerModule.estimate_params(a)
+        r, c, _ = self.planner.estimate_params(a)
         next_state = np.maximum(state - np.array([c, 0.5 * c], dtype=np.float32), 0.0)
         self.metrics.bellman_error = float(
             self.planner.compute_bellman_error(state, a, r - c, next_state)

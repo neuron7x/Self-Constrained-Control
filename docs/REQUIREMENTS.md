@@ -86,7 +86,7 @@ Every requirement is:
   - Verification: VER-INSPECT + VER-TEST.
 
 - **REQ-BUD-0004**: The Nash-equilibrium computation SHOULD be cached with a TTL.
-  - Verification: VER-INSPECT.
+  - Verification: VER-TEST.
 
 ### 2.6 Actuation
 

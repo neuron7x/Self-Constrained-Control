@@ -30,8 +30,8 @@ RL outputs cannot actuate directly: budget `request()` gates decoding/planning/a
 
 ### 4.4 Failure modes (≥6) + containment + evidence hook
 - FM-RL-1: Divergent reward scaling from `estimate_params` noise → containment: Lyapunov gate + rule-based fallback (`decide_with_stability` loop). Evidence: `tests/test_planner.py`.
-- FM-RL-2: Unstable proposed action (ΔV≥0) → containment: reject and fall back to rule-based (`decide_with_stability`). Evidence: code path in `planner_module.py`.
-- FM-RL-3: Budget exhaustion before planning → containment: early return in `process_action` if `request()` fails. Evidence: `tests/test_budget.py` + `system.py` logic.
+- FM-RL-2: Unstable proposed action (ΔV≥0) → containment: reject and fall back to rule-based only if Lyapunov gate approves; otherwise hard reject (`decide_with_stability`). Evidence: `planner_module.py`, `tests/test_planner.py::test_planner_rejects_when_unstable`.
+- FM-RL-3: Budget exhaustion before planning → containment: early return in `process_action` if `request()` fails. Evidence: `tests/test_budget.py`, `system.py` logic.
 - FM-RL-4: Intent mismatch between requested and decoded → containment: `process_action` returns before planning/actuation. Evidence: `tests/test_system.py` intent check.
 - FM-RL-5: Latency over SLA → containment: `check_sla` penalizes remaining budget to throttle future work. Evidence: `budget_manager.py`, `tests/test_budget.py`.
 - FM-RL-6: Unsupported action index outside {0,1,2} → containment: action set constrained in `decide_with_stability`; actuator strict-mode guard rejects unknown names. Evidence: `actuator_module.py`, `tests/test_integration.py`.
@@ -41,7 +41,7 @@ RL outputs cannot actuate directly: budget `request()` gates decoding/planning/a
 If any gate fails (budget, intent, stability, safety-mode, circuit breaker), the action is aborted and no actuator call occurs. Fallbacks: rule-based planner path, simplified action (1), SAFE degradation mode, or skipping cycle with metrics recorded (`system.py`, `monitoring.py`).
 
 ### 4.6 Validation hooks
-- Unit tests: `tests/test_planner.py`, `tests/test_system.py`, `tests/test_budget.py`, `tests/test_integration.py`.
+- Unit tests: `tests/test_planner.py` (action bounds, fail-closed stability), `tests/test_system.py` (budget gating, artifacts), `tests/test_budget.py` (Nash cache TTL), `tests/test_integration.py`.
 - Metrics: latency + Bellman error in `MetricsCollector`; anomaly detection on planner latency (`AnomalyDetector`).
 - Invariants: `INV-001/002/004` via `validate_system_scalars`; `BUD-001/002` via `validate_budget_snapshot`.
 
@@ -108,6 +108,7 @@ Allocate finite resource tokens across decoder/planner/actuator as strategic act
 - Cache TTL `_cache_ttl_s=1.0` prevents recomputation each cycle.
 - Iteration cap: fixed 10 loops per call.
 - Negotiation bounded by token amounts and request caps (e.g., 10% top-ups, lending thresholds).
+- Verification: `tests/test_budget.py::test_nash_equilibrium_cache_ttl` asserts TTL cache prevents recompute within window.
 
 ### 6.5 Failure modes (≥8) + containment + evidence hook
 - FM-AU-1: Starvation of lower-priority module → containment: `negotiate_resources` lends from surplus; health monitor triggers degradation. Evidence: `budget_manager.py`, `monitoring.py`.
@@ -140,7 +141,7 @@ Allocate finite resource tokens across decoder/planner/actuator as strategic act
 - Circuit breaker and watchdog (timeout) provide orthogonal containment to budgeting/stability; if any layer fails, the pipeline aborts before actuation. No single gate alone authorizes execution.
 
 ## 8) Guarantees / Assumptions / Residual Risks
-- Guarantees (repo-backed): budget non-negativity and SLA finiteness (`src/self_constrained_control/contracts.py`, tests); strict-mode action whitelist (`src/self_constrained_control/actuator_module.py`); watchdog timeout raising (`src/self_constrained_control/system.py`); metrics/snapshots emitted (`src/self_constrained_control/metrics.py`), state snapshots from `StateManager` (`src/self_constrained_control/utils.py`).
+- Guarantees (repo-backed): budget non-negativity and SLA finiteness (`src/self_constrained_control/contracts.py`, tests); strict-mode action whitelist (`src/self_constrained_control/actuator_module.py`); watchdog timeout raising (`src/self_constrained_control/system.py`); metrics/snapshots emitted (`src/self_constrained_control/metrics.py`), state snapshots from `StateManager` (`src/self_constrained_control/utils.py`), fail-closed stability gate (`planner_module.py`).
 - Assumptions: deployment is local/CI; users do not bypass gates (`docs/SAFETY_CASE.md` A1); config files are trusted inputs.
 - Residual risks: heuristic Lyapunov form may mis-rank actions; auction heuristics may starve under adversarial patterns; simulator realism is limited (R-001/R-003 in `docs/RISK_REGISTER.md`); pickle artifacts are unsafe with untrusted data.
 
@@ -151,16 +152,16 @@ Allocate finite resource tokens across decoder/planner/actuator as strategic act
 - Reproducibility: pin seeds (`SystemConfig.seed`), document config used, and keep invariants (`validate_system_scalars`, `validate_budget_snapshot`) intact.
 
 ## A) Repo Grounding Index
-- Planner / Stability: `src/self_constrained_control/planner_module.py` → `PlannerModule`, `LyapunovStabilityAnalyzer`, `LQRController`; invariants REQ-PLN-0001/0002; tests `tests/test_planner.py`, `tests/test_system.py`.
-- Budget / Auction: `src/self_constrained_control/budget_manager.py` → `GameTheoreticBudgetManager`, `PredictiveBudgetManager`, `AdaptiveModuleBudget`; invariants BUD-001/002, SLA-001 (`contracts.py`); tests `tests/test_budget.py`, `tests/test_contracts.py`.
+- Planner / Stability: `src/self_constrained_control/planner_module.py` → `PlannerModule`, `LyapunovStabilityAnalyzer`, `LQRController`; invariants REQ-PLN-0001/0002; tests `tests/test_planner.py::test_planner_rejects_when_unstable`, `tests/test_system.py`.
+- Budget / Auction: `src/self_constrained_control/budget_manager.py` → `GameTheoreticBudgetManager`, `PredictiveBudgetManager`, `AdaptiveModuleBudget`; invariants BUD-001/002, SLA-001 (`contracts.py`); tests `tests/test_budget.py::test_nash_equilibrium_cache_ttl`, `tests/test_contracts.py`.
 - Safety / Actuation: `src/self_constrained_control/actuator_module.py` → `ActuatorModule.perform`; strict whitelist; tests `tests/test_integration.py`.
-- Orchestrator: `src/self_constrained_control/system.py` → `ResourceAwareSystem.process_action/run_loop`, `WatchdogTimer`; invariants INV-001/002/005; tests `tests/test_system.py`, `tests/test_integration.py`.
+- Orchestrator: `src/self_constrained_control/system.py` → `ResourceAwareSystem.process_action/run_loop`, `WatchdogTimer`; invariants INV-001/002/005; tests `tests/test_system.py::test_actuator_not_called_when_budget_denied`, `tests/test_system.py::test_metrics_and_state_artifacts`, `tests/test_integration.py`.
 - Monitoring: `src/self_constrained_control/monitoring.py` → `AnomalyDetector`, `BudgetHealthMonitor`, `GracefulDegradation`; tests exercised indirectly via system loop.
 - Contracts: `src/self_constrained_control/contracts.py` → `validate_system_scalars`, `validate_budget_snapshot`; tests `tests/test_contracts.py`.
 
 ## B) Minimal evidence set
-- Mandatory artifacts: `artifacts/metrics/metrics.json` (latencies, battery, energy, bellman_error), `artifacts/state/cycle_*.pkl` snapshots (`tests/test_integration.py` expectation), Parquet optional.
-- Mandatory tests: `pytest` suite covering planner, budget, contracts, system, integration (`tests/test_*.py`); CI pipeline running ruff+mypy+pytest (REQ-QLT-0001).
+- Mandatory artifacts: `artifacts/metrics/metrics.json` (latencies, battery, energy, bellman_error), `artifacts/state/cycle_*.pkl` snapshots + `.sha256` digests (loadable via `StateManager.load_state`), Parquet optional.
+- Mandatory tests: planner stability gate fail-closed (`tests/test_planner.py::test_planner_rejects_when_unstable`), TTL cache (`tests/test_budget.py::test_nash_equilibrium_cache_ttl`), budget denial path (`tests/test_system.py::test_actuator_not_called_when_budget_denied`), metrics/state artifacts (`tests/test_system.py::test_metrics_and_state_artifacts`), plus existing integration/contract tests; CI pipeline running ruff+mypy+pytest (REQ-QLT-0001).
 - Mandatory invariants: `INV-001/002/004/005`, `BUD-001/002`, `SLA-001` executed each cycle (`system.py` contract calls). Missing evidence must be added as new tests and traceability rows if functionality changes (proposed when extending).
 
 ## 10) References
