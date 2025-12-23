@@ -23,6 +23,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -86,7 +88,6 @@ jobs:
         run: |
           set -euo pipefail
           BASE="${BASE_REF:-main}"
-          git fetch --no-tags --prune --depth=1 origin "${BASE}"
           git diff --unified=0 "origin/${BASE}"...HEAD > diff.patch
           python scripts/diff_coverage.py --coverage coverage.xml --diff diff.patch --threshold 95 --repo-root "$(pwd)"
 
