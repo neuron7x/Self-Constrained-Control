@@ -3,8 +3,8 @@ from __future__ import annotations
 import argparse
 import sys
 from collections import defaultdict
+from collections.abc import Iterable, Mapping, MutableMapping
 from pathlib import Path
-from typing import Iterable, Mapping, MutableMapping
 from xml.etree import ElementTree as ET
 
 FLOAT_TOLERANCE = 1e-9
@@ -98,7 +98,7 @@ def compute_diff_coverage(
     }
     total_changed = 0
 
-    uncovered: MutableMapping[str, Set[int]] = defaultdict(set)
+    uncovered: MutableMapping[str, set[int]] = defaultdict(set)
     for file_path, lines in python_changes.items():
         relevant = measured_lines.get(file_path, set()).intersection(lines)
         if not relevant:
@@ -119,7 +119,9 @@ def compute_diff_coverage(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Compute diff coverage from coverage.xml and git diff.")
+    parser = argparse.ArgumentParser(
+        description="Compute diff coverage from coverage.xml and git diff."
+    )
     parser.add_argument("--coverage", type=Path, required=True, help="Path to coverage.xml")
     parser.add_argument(
         "--diff",

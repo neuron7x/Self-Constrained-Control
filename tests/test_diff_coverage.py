@@ -4,18 +4,21 @@ import sys
 from pathlib import Path
 
 from pytest import approx
-
 from scripts.diff_coverage import (
+    _normalize_path,
     compute_diff_coverage,
     load_coverage_map,
     main,
     parse_unified_diff,
-    _normalize_path,
 )
 
 
 def _write_coverage(
-    tmp_path: Path, filename: str, lines: list[int], zero_hit_lines: list[int] | None = None, absolute: bool = False
+    tmp_path: Path,
+    filename: str,
+    lines: list[int],
+    zero_hit_lines: list[int] | None = None,
+    absolute: bool = False,
 ) -> Path:
     path = tmp_path / filename
     coverage_xml = tmp_path / "coverage.xml"
@@ -23,13 +26,15 @@ def _write_coverage(
         '<?xml version="1.0" ?>\n'
         '<coverage branch-rate="0" line-rate="1" version="1.0">\n'
         "  <packages>\n"
-        "    <package name=\"pkg\" branch-rate=\"0\" line-rate=\"1\">\n"
+        '    <package name="pkg" branch-rate="0" line-rate="1">\n'
         "      <classes>\n"
-        f"        <class name=\"cls\" filename=\"{path if absolute else filename}\" line-rate=\"1\" branch-rate=\"0\">\n"
+        f'        <class name="cls" filename="{path if absolute else filename}" line-rate="1" branch-rate="0">\n'
         "          <lines>\n"
         + "\n".join(f'            <line number="{line}" hits="1"/>' for line in lines)
         + ("\n" if lines else "")
-        + "\n".join(f'            <line number="{line}" hits="0"/>' for line in (zero_hit_lines or []))
+        + "\n".join(
+            f'            <line number="{line}" hits="0"/>' for line in (zero_hit_lines or [])
+        )
         + "\n"
         "          </lines>\n"
         "        </class>\n"
@@ -49,7 +54,7 @@ def test_load_coverage_resolves_basename(tmp_path: Path) -> None:
     target.write_text("# sample\n")
 
     coverage_xml = _write_coverage(tmp_path, "example.py", lines=[1])
-    covered, measured = load_coverage_map(coverage_xml, repo_root)
+    covered, _measured = load_coverage_map(coverage_xml, repo_root)
 
     assert "scripts/example.py" in covered
 
@@ -250,14 +255,14 @@ def test_main_cli_failure_uses_stdin(tmp_path: Path, monkeypatch, capsys) -> Non
 def test_load_coverage_map_ignores_missing_filename(tmp_path: Path) -> None:
     coverage_xml = tmp_path / "cov.xml"
     coverage_xml.write_text(
-        "<?xml version=\"1.0\" ?>\n"
-        "<coverage branch-rate=\"0\" line-rate=\"0\" version=\"1.0\">\n"
+        '<?xml version="1.0" ?>\n'
+        '<coverage branch-rate="0" line-rate="0" version="1.0">\n'
         "  <packages>\n"
-        "    <package name=\"pkg\" branch-rate=\"0\" line-rate=\"0\">\n"
+        '    <package name="pkg" branch-rate="0" line-rate="0">\n'
         "      <classes>\n"
-        "        <class name=\"cls\" filename=\"\" line-rate=\"0\" branch-rate=\"0\">\n"
+        '        <class name="cls" filename="" line-rate="0" branch-rate="0">\n'
         "          <lines>\n"
-        "            <line number=\"1\" hits=\"0\"/>\n"
+        '            <line number="1" hits="0"/>\n'
         "          </lines>\n"
         "        </class>\n"
         "      </classes>\n"
@@ -290,10 +295,7 @@ def test_parse_unified_diff_handles_deletions_and_context() -> None:
 
 def test_parse_unified_diff_skips_dev_null() -> None:
     diff_text = (
-        "diff --git a/src/file.py b/src/file.py\n"
-        "--- /dev/null\n"
-        "+++ /dev/null\n"
-        "@@ -0,0 +0,0 @@\n"
+        "diff --git a/src/file.py b/src/file.py\n--- /dev/null\n+++ /dev/null\n@@ -0,0 +0,0 @@\n"
     )
 
     changed = parse_unified_diff(diff_text)
