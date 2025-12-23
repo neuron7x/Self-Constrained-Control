@@ -106,7 +106,8 @@ async def test_end_to_end_loop_emits_artifacts(
     monkeypatch.chdir(tmp_path)
     data_path = Path(__file__).resolve().parent.parent / "data" / "n1_config.yaml"
     assert data_path.exists()
-    system = ResourceAwareSystem(load_config(str(data_path)), config_path=str(data_path))
+    config_path = str(data_path)
+    system = ResourceAwareSystem(load_config(config_path), config_path=config_path)
 
     async def fixed_spikes() -> np.ndarray:
         return np.full(system.config.n_channels, 100.0, dtype=np.float32)
@@ -258,7 +259,8 @@ def test_planner_load_model_bad_version_counter(
 async def test_system_sets_rl_metrics(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.chdir(tmp_path)
     data_path = Path(__file__).resolve().parent.parent / "data" / "n1_config.yaml"
-    system = ResourceAwareSystem(load_config(str(data_path)), config_path=str(data_path))
+    config_path = str(data_path)
+    system = ResourceAwareSystem(load_config(config_path), config_path=config_path)
 
     async def fixed_spikes() -> np.ndarray:
         return np.full(system.config.n_channels, 120.0, dtype=np.float32)

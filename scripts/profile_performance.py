@@ -11,7 +11,8 @@ from self_constrained_control.utils import load_config, setup_logging
 
 async def _run() -> None:
     setup_logging()
-    sys = ResourceAwareSystem(load_config("data/n1_config.yaml"), config_path="data/n1_config.yaml")
+    config_path = "data/n1_config.yaml"
+    sys = ResourceAwareSystem(load_config(config_path), config_path=config_path)
     await sys.run_loop(["move_arm", "plan_route", "stop"], epochs=1)
 
 
