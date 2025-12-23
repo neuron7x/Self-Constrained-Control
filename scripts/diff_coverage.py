@@ -4,8 +4,10 @@ import argparse
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, Mapping, MutableMapping, Set
+from typing import Iterable, Mapping, MutableMapping
 from xml.etree import ElementTree as ET
+
+FLOAT_TOLERANCE = 1e-9
 
 
 def _normalize_path(path: str, repo_root: Path) -> str:
@@ -28,10 +30,10 @@ def _normalize_path(path: str, repo_root: Path) -> str:
 
 def load_coverage_map(
     coverage_xml: Path, repo_root: Path
-) -> tuple[Dict[str, Set[int]], Dict[str, Set[int]]]:
+) -> tuple[dict[str, set[int]], dict[str, set[int]]]:
     tree = ET.parse(coverage_xml)
-    covered: MutableMapping[str, Set[int]] = defaultdict(set)
-    measured: MutableMapping[str, Set[int]] = defaultdict(set)
+    covered: MutableMapping[str, set[int]] = defaultdict(set)
+    measured: MutableMapping[str, set[int]] = defaultdict(set)
 
     for cls in tree.findall(".//class"):
         filename = cls.get("filename")
@@ -49,8 +51,8 @@ def load_coverage_map(
     return dict(covered), dict(measured)
 
 
-def parse_unified_diff(diff_text: str) -> Dict[str, Set[int]]:
-    changed: MutableMapping[str, Set[int]] = defaultdict(set)
+def parse_unified_diff(diff_text: str) -> dict[str, set[int]]:
+    changed: MutableMapping[str, set[int]] = defaultdict(set)
     current_file: str | None = None
     new_line_number: int | None = None
 
@@ -65,7 +67,10 @@ def parse_unified_diff(diff_text: str) -> Dict[str, Set[int]]:
             parts = raw_line.split(" ")
             add_section = parts[2] if len(parts) > 2 else ""
             add_segment = add_section.strip("+").split(",")
-            start_line = int(add_segment[0]) if add_segment and add_segment[0] else 0
+            try:
+                start_line = int(add_segment[0]) if add_segment and add_segment[0] else 0
+            except ValueError:
+                start_line = 0
             new_line_number = start_line
         elif raw_line.startswith("+") and not raw_line.startswith("+++"):
             if current_file is not None and new_line_number is not None:
@@ -83,9 +88,9 @@ def parse_unified_diff(diff_text: str) -> Dict[str, Set[int]]:
 
 def compute_diff_coverage(
     changed_lines: Mapping[str, Iterable[int]],
-    covered_lines: Mapping[str, Set[int]],
-    measured_lines: Mapping[str, Set[int]],
-) -> tuple[float, Dict[str, Set[int]]]:
+    covered_lines: Mapping[str, set[int]],
+    measured_lines: Mapping[str, set[int]],
+) -> tuple[float, dict[str, set[int]]]:
     python_changes = {
         path: set(lines)
         for path, lines in changed_lines.items()
@@ -103,7 +108,7 @@ def compute_diff_coverage(
         covered_for_file = covered_lines.get(file_path, set())
         missing = relevant.difference(covered_for_file)
         if missing:
-            uncovered[file_path].update(sorted(missing))
+            uncovered[file_path].update(missing)
 
     if total_changed == 0:
         return 100.0, {}
@@ -148,7 +153,7 @@ def main() -> int:
             sorted_lines = ", ".join(str(line) for line in sorted(lines))
             print(f"Missing coverage in {file_path}: lines {sorted_lines}", file=sys.stderr)
 
-    if percent + 1e-9 < args.threshold:
+    if percent + FLOAT_TOLERANCE < args.threshold:
         return 1
 
     return 0
