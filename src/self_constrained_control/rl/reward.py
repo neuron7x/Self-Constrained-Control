@@ -7,7 +7,7 @@ import numpy as np
 
 def delta_v_penalty(delta_v: float) -> float:
     # Positive or zero dv means instability -> strong negative penalty.
-    return -float(np.clip(delta_v, 0.0, None)) - 0.5 if delta_v >= 0.0 else 0.5
+    return -max(0.0, float(delta_v)) - 0.5 if delta_v >= 0.0 else 0.5
 
 
 def budget_efficiency(spent: float, available: float) -> float:

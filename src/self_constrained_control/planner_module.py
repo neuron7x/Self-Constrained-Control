@@ -113,6 +113,7 @@ class PlannerModule:
         self.rl_last_td_error: float = 0.0
         self.rl_updates: int = 0
         self.rl_policy_version: str = "v0"
+        self.rl_version_counter = 0
         self.rl_gate_rejections: int = 0
         self.rl_fallbacks: int = 0
         self.rl_decisions: int = 0
@@ -170,7 +171,7 @@ class PlannerModule:
                 self.rl_gate_rejections += 1
                 continue
             score = float(self.rl_policy.q_values(state)[action]) if self.rl_enabled else 0.0
-            score += float(-dv)
+            score += float(-dv) * 0.1
             if score > best_score:
                 best_score = score
                 best_action = action
@@ -219,7 +220,8 @@ class PlannerModule:
         if td_errors:
             self.rl_last_td_error = float(np.mean(np.abs(td_errors)))
         self.rl_updates += len(td_errors)
-        self.rl_policy_version = f"v{int(time.time())}"
+        self.rl_version_counter += 1
+        self.rl_policy_version = f"v{self.rl_version_counter}"
         artifact = PolicyArtifact(
             schema_version="1.0",
             algo="tabular_q_learning",
@@ -272,6 +274,12 @@ class PlannerModule:
             return
         self.rl_policy.load_weights(artifact.weights)
         self.rl_policy_version = artifact.policy_version
+        try:
+            self.rl_version_counter = max(
+                self.rl_version_counter, int(str(artifact.policy_version).lstrip("v"))
+            )
+        except ValueError:
+            self.rl_version_counter = max(self.rl_version_counter, 0)
 
     def rl_metrics_snapshot(self) -> dict[str, float | str]:
         decisions = max(1, self.rl_decisions)

@@ -28,7 +28,7 @@ class QLearningTrainer(Trainer):
         q_vals = self.policy.q_values(transition.state)
         q_sa = float(q_vals[transition.action])
         next_q = float(np.max(self.policy.q_values(transition.next_state)))
-        target = transition.reward + self.gamma * next_q * (0.0 if transition.done else 1.0)
+        target = transition.reward + self.gamma * next_q * (1.0 - float(transition.done))
         td_error = target - q_sa
         updated = q_sa + self.alpha * td_error
         self.policy.update_q(transition.state, transition.action, updated)

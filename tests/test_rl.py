@@ -93,6 +93,7 @@ async def test_end_to_end_loop_emits_artifacts(
 ) -> None:
     monkeypatch.chdir(tmp_path)
     data_path = Path(__file__).resolve().parent.parent / "data" / "n1_config.yaml"
+    assert data_path.exists()
     system = ResourceAwareSystem(config_path=str(data_path))
 
     async def fixed_spikes() -> np.ndarray:
