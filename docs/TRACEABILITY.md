@@ -24,6 +24,11 @@ This matrix links **Requirements → Implementation → Verification**.
 | REQ-DEC-0001 | Decode returns single label | `neural_interface.py` | `tests/test_system.py` | VER-TEST |
 | REQ-PLN-0001 | Planner returns {0,1,2} | `planner_module.py` | `tests/test_planner.py` | VER-TEST |
 | REQ-PLN-0002 | Stability gate applied | `planner_module.py` | `tests/test_planner.py::test_planner_rejects_when_unstable` | VER-TEST |
+| REQ-RL-0001 | RL training updates advisory policy deterministically | `planner_module.py`, `rl/trainer.py`, `rl/policy.py` | `tests/test_rl.py::test_training_updates_qtable_deterministically` | VER-TEST |
+| REQ-RL-0002 | Reward combines ∆V penalty, budget efficiency, SLA penalty, task success | `rl/reward.py` | `tests/test_rl.py::test_reward_penalizes_positive_delta_v` | VER-TEST |
+| REQ-RL-0003 | RL proposals cannot bypass gates (budget + Lyapunov) | `planner_module.py` | `tests/test_rl.py::test_rl_respects_gates` | VER-TEST |
+| REQ-RL-0004 | Corrupted RL artifacts fail-closed | `rl/persistence.py`, `planner_module.py` | `tests/test_rl.py::test_fail_closed_on_corrupt_model` | VER-TEST |
+| REQ-RL-0005 | RL artifacts + metrics emitted during loop | `planner_module.py`, `system.py`, `metrics.py`, `rl/persistence.py` | `tests/test_rl.py::test_end_to_end_loop_emits_artifacts` | VER-TEST |
 | REQ-BUD-0001 | Budgets exist per module | `budget_manager.py` | `tests/test_budget.py` | VER-TEST |
 | REQ-BUD-0002 | Work denied without budget | `budget_manager.py`, `system.py` | `tests/test_system.py::test_actuator_not_called_when_budget_denied` | VER-TEST |
 | REQ-BUD-0004 | Nash-equilibrium computation cached with TTL | `budget_manager.py` | `tests/test_budget.py::test_nash_equilibrium_cache_ttl` | VER-TEST |

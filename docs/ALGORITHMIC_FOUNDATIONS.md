@@ -26,16 +26,17 @@ Advisory planner proposing `{execute, simplify, reject}` decisions to maximize h
 - Reward proxy: `estimate_params` returns `(reward, cost, stress)`; TD proxy via `compute_bellman_error`. This is implementation-dependent and heuristic (no learned value function shipped).
 
 ### 4.3 Mandatory containment
-RL outputs cannot actuate directly: budget `request()` gates decoding/planning/actuation; Lyapunov gate vetoes unstable actions; strict actuator validates action names; circuit breaker blocks on repeated faults (`system.py`, `utils.py`).
+RL outputs cannot actuate directly: budget `request()` gates decoding/planning/actuation; Lyapunov gate vetoes unstable actions; strict actuator validates action names; circuit breaker blocks on repeated faults (`system.py`, `utils.py`). RL proposals are consumed as candidates in `PlannerModule.decide_with_stability`, then screened by budget + Lyapunov; empty set triggers baseline fallback (fail-closed).
 
 ### 4.4 Failure modes (≥6) + containment + evidence hook
 - FM-RL-1: Divergent reward scaling from `estimate_params` noise → containment: Lyapunov gate + rule-based fallback (`decide_with_stability` loop). Evidence: `tests/test_planner.py`.
-- FM-RL-2: Unstable proposed action (ΔV≥0) → containment: reject and fall back to rule-based only if Lyapunov gate approves; otherwise hard reject (`decide_with_stability`). Evidence: `planner_module.py`, `tests/test_planner.py::test_planner_rejects_when_unstable`.
+- FM-RL-2: Unstable proposed action (ΔV≥0) → containment: reject and fall back to rule-based only if Lyapunov gate approves; otherwise hard reject (`decide_with_stability`). Evidence: `planner_module.py`, `tests/test_planner.py::test_planner_rejects_when_unstable`, `tests/test_rl.py::test_rl_respects_gates`.
 - FM-RL-3: Budget exhaustion before planning → containment: early return in `process_action` if `request()` fails. Evidence: `tests/test_budget.py`, `system.py` logic.
 - FM-RL-4: Intent mismatch between requested and decoded → containment: `process_action` returns before planning/actuation. Evidence: `tests/test_system.py` intent check.
 - FM-RL-5: Latency over SLA → containment: `check_sla` penalizes remaining budget to throttle future work. Evidence: `budget_manager.py`, `tests/test_budget.py`.
 - FM-RL-6: Unsupported action index outside {0,1,2} → containment: action set constrained in `decide_with_stability`; actuator strict-mode guard rejects unknown names. Evidence: `actuator_module.py`, `tests/test_integration.py`.
 - FM-RL-7: Circuit-breaker opens after repeated planner/simulator failures → containment: `CircuitBreaker.call` raises and stops pipeline. Evidence: `utils.py`, `docs/SAFETY_CASE.md` G4, `tests/test_system.py`.
+- FM-RL-8: Corrupted RL artifact → containment: `.sha256` mismatch disables RL and falls back to baseline. Evidence: `rl/persistence.py`, `planner_module.py`, `tests/test_rl.py::test_fail_closed_on_corrupt_model`.
 
 ### 4.5 Fail-closed behavior + fallback
 If any gate fails (budget, intent, stability, safety-mode, circuit breaker), the action is aborted and no actuator call occurs. Fallbacks: rule-based planner path, simplified action (1), SAFE degradation mode, or skipping cycle with metrics recorded (`system.py`, `monitoring.py`).
@@ -46,8 +47,8 @@ If any gate fails (budget, intent, stability, safety-mode, circuit breaker), the
 - Invariants: `INV-001/002/004` via `validate_system_scalars`; `BUD-001/002` via `validate_budget_snapshot`.
 
 ### 4.7 Implementation-dependent notes
-- RL backend is stubbed (no policy learning). Any learned policy must still emit `{0,1,2}` and route through Lyapunov + budget + safety gates.
-- Reward shaping and cost models are heuristic; claims about optimality or convergence are out-of-scope until backed by training/eval artifacts.
+- RL backend: tabular Q-learning with deterministic `TrajectoryBuffer`, epsilon-greedy proposals, bounded episodes/steps, and artifacts persisted with SHA256 digest. Outputs remain advisory and must clear all gates.
+- Reward shaping and cost models are heuristic; claims about optimality or convergence are out-of-scope until backed by training/eval artifacts (`tests/test_rl.py` validates reward ordering, not optimality).
 
 ### 4.8 References
 [1] R. S. Sutton and A. G. Barto, *Reinforcement Learning: An Introduction*, 2nd ed., MIT Press, 2018.  

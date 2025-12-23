@@ -24,6 +24,25 @@ This file defines the **stable interfaces** between modules. The intent is to ke
   - always returns a valid action
   - prefers stability (∆V < 0) when a candidate exists.
 
+### RL proposal interfaces (advisory only)
+- `self_constrained_control.rl.policy.Policy`
+  - `propose_action_distribution(state, k)` returns ranked candidate actions with probabilities.
+  - `propose_action(state)` returns a single action proposal (epsilon-greedy).
+- `self_constrained_control.rl.trainer.Trainer`
+  - `train_step(transition)` performs one update; returns TD error.
+  - `train_epochs(buffer, epochs)` runs bounded epochs over deterministic buffer.
+- `self_constrained_control.rl.buffer.TrajectoryBuffer`
+  - Append-only, deterministic iteration for reproducible training.
+- `self_constrained_control.rl.reward.compute_reward(...)`
+  - Pure function combining ∆V penalty, budget efficiency, SLA penalty, and task success.
+
+### Persistence and metrics contracts
+- `self_constrained_control.rl.persistence.save_policy_artifact` / `load_policy_artifact`
+  - Persist/restore tabular policy weights with `schema_version`, `hyperparams`, `action_mapping`, `seed`, `policy_version`; `.sha256` must match or RL is disabled (fail-closed).
+  - Artifact path: `artifacts/models/rl_policy.npz` + `.sha256`.
+- Metrics (`MetricsCollector.snapshot()`):
+  - RL metrics exported under keys `rl/epsilon`, `rl/td_error_mean`, `rl/updates`, `rl/policy_version`, `rl/fallback_rate`, `rl/gate_rejection_rate` alongside latency/battery/user_energy/bellman_error.
+
 ## Budget Manager
 
 ### `BudgetManager.allocate_cycle()`

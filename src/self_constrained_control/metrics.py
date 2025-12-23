@@ -16,9 +16,13 @@ class MetricsCollector:
     battery_level: float = 0.0
     user_energy_level: float = 0.0
     bellman_error: float = 0.0
+    rl_metrics: dict[str, float | str] = field(default_factory=dict)
 
     def record_latency(self, name: str, duration_s: float) -> None:
         self.latencies_s.setdefault(name, []).append(float(duration_s))
+
+    def set_rl_metrics(self, metrics: dict[str, float | str]) -> None:
+        self.rl_metrics = {k: v for k, v in metrics.items()}
 
     def snapshot(self) -> dict[str, Any]:
         return {
@@ -26,6 +30,7 @@ class MetricsCollector:
             "battery": self.battery_level,
             "user_energy": self.user_energy_level,
             "bellman_error": self.bellman_error,
+            "rl": dict(self.rl_metrics),
             "latencies_s": {k: list(v) for k, v in self.latencies_s.items()},
         }
 
