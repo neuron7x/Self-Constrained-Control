@@ -88,6 +88,7 @@ jobs:
         run: |
           set -euo pipefail
           BASE="${BASE_REF:-main}"
+          git fetch --no-tags --prune origin "${BASE}"
           git diff --unified=0 "origin/${BASE}"...HEAD > diff.patch
           python scripts/diff_coverage.py --coverage coverage.xml --diff diff.patch --threshold 95 --repo-root "$(pwd)"
 
