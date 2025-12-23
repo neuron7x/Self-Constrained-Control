@@ -33,6 +33,7 @@ This matrix links **Requirements → Implementation → Verification**.
 | REQ-SAF-0001 | Watchdog terminates on stall | `system.py` | `tests/test_system.py` | VER-TEST |
 | REQ-SAF-0002 | Circuit breaker opens after failures | `utils.py` | `tests/test_system.py` | VER-TEST |
 | REQ-QLT-0001 | CI runs ruff/mypy/pytest | `.github/workflows/ci.yml` | (inspection) | VER-INSPECT |
+| REQ-QLT-0002 | Diff coverage ≥95% with artifacts | `.github/workflows/ci.yml`, `scripts/diff_coverage.py` | `tests/test_diff_coverage.py` | VER-TEST |
 
 ## Evidence artifact pointers
 

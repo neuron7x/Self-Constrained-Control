@@ -97,7 +97,12 @@ asyncio_mode = "auto"
 
 [tool.coverage.run]
 branch = true
-source = ["self_constrained_control"]
+source = ["self_constrained_control", "scripts"]
+omit = [
+  "scripts/profile_performance.py",
+  "scripts/run_system.py",
+  "scripts/validate_deployment.py",
+]
 
 [tool.coverage.report]
 show_missing = true
