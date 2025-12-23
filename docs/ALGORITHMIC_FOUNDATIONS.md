@@ -56,7 +56,7 @@ If any gate fails (budget, intent, stability, safety-mode, circuit breaker), the
 
 ## 5) Lyapunov-Based Stability Gate
 ### 5.1 Engineering definition
-Stability is evaluated on state `[battery, user_energy]` toward `target_state=[75,75]` using quadratic V(x) = (x−x\*)ᵀP(x−x\*) with P positive definite (`LyapunovStabilityAnalyzer.P`). Stable if ΔV<0 between candidate next_state and current (`stable` method).
+Stability is evaluated on state `[battery, user_energy]` toward `target_state=[75,75]` using quadratic V(x) = (x−x*)ᵀ P (x−x*) with fixed positive-definite P (`LyapunovStabilityAnalyzer.P`). This is a heuristic gate, not a formally proven Lyapunov certificate for the full dynamics. Stable if ΔV<0 between candidate `next_state` and current (`stable` method).
 
 ### 5.2 Gate decision policy
 - ACCEPT: candidate action with ΔV<0 and within approved action set, budgets available, safety-mode passes.
@@ -102,7 +102,7 @@ Allocate finite resource tokens across decoder/planner/actuator as strategic act
 - Payoff: available budget to execute work; penalties applied on SLA violations (`check_sla`).
 
 ### 6.3 Nash equilibrium usage boundaries
-`find_nash_equilibrium` iterates heuristic best responses with a 1s cache TTL. It is heuristic and not a formal equilibrium proof; claims of true Nash convergence are implementation-dependent.
+`find_nash_equilibrium` iterates heuristic best responses with a 1s cache TTL; it **does not** compute a formal Nash equilibrium and should be read as an approximate allocation heuristic only. Claims of equilibrium convergence are implementation-dependent and currently unsupported.
 
 ### 6.4 Bounded computation
 - Cache TTL `_cache_ttl_s=1.0` prevents recomputation each cycle.
@@ -140,7 +140,7 @@ Allocate finite resource tokens across decoder/planner/actuator as strategic act
 - Circuit breaker and watchdog (timeout) provide orthogonal containment to budgeting/stability; if any layer fails, the pipeline aborts before actuation. No single gate alone authorizes execution.
 
 ## 8) Guarantees / Assumptions / Residual Risks
-- Guarantees (repo-backed): budget non-negativity and SLA finiteness (`contracts.py`, tests); strict-mode action whitelist (`actuator_module.py`); watchdog timeout raising (`system.py`); metrics/snapshots emitted (`metrics.py`, `StateManager`).
+- Guarantees (repo-backed): budget non-negativity and SLA finiteness (`src/self_constrained_control/contracts.py`, tests); strict-mode action whitelist (`src/self_constrained_control/actuator_module.py`); watchdog timeout raising (`src/self_constrained_control/system.py`); metrics/snapshots emitted (`src/self_constrained_control/metrics.py`), state snapshots from `StateManager` (`src/self_constrained_control/utils.py`).
 - Assumptions: deployment is local/CI; users do not bypass gates (`docs/SAFETY_CASE.md` A1); config files are trusted inputs.
 - Residual risks: heuristic Lyapunov form may mis-rank actions; auction heuristics may starve under adversarial patterns; simulator realism is limited (R-001/R-003 in `docs/RISK_REGISTER.md`); pickle artifacts are unsafe with untrusted data.
 
