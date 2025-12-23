@@ -5,11 +5,12 @@ from pathlib import Path
 import pytest
 
 from self_constrained_control.system import ResourceAwareSystem
+from self_constrained_control.utils import load_config
 
 
 @pytest.mark.asyncio
-async def test_system_run_loop_smoke(config_path: str):
-    sys = ResourceAwareSystem(config_path)
+async def test_system_run_loop_smoke(config_data: dict[str, object], config_path: str):
+    sys = ResourceAwareSystem(config_data, config_path=config_path)
     await sys.run_loop(["move_arm", "stop"], epochs=1)
     assert 0.0 <= sys.battery <= 100.0
     assert 0.0 <= sys.user_energy <= 100.0
@@ -26,7 +27,7 @@ async def test_actuator_not_called_when_budget_denied(tmp_path, monkeypatch):
     cfg_path.write_text(cfg_text, encoding="utf-8")
 
     monkeypatch.chdir(tmp_path)
-    sys = ResourceAwareSystem(str(cfg_path))
+    sys = ResourceAwareSystem(load_config(str(cfg_path)), config_path=str(cfg_path))
 
     async def _intent_always_matches(_firing):
         return "move_arm"
@@ -44,11 +45,13 @@ async def test_actuator_not_called_when_budget_denied(tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_metrics_and_state_artifacts(tmp_path, monkeypatch, config_path: str):
+async def test_metrics_and_state_artifacts(
+    tmp_path, monkeypatch, config_data: dict[str, object], config_path: str
+):
     import json
 
     monkeypatch.chdir(tmp_path)
-    sys = ResourceAwareSystem(config_path)
+    sys = ResourceAwareSystem(config_data, config_path=config_path)
 
     async def _intent_always_matches(_firing):
         return "move_arm"

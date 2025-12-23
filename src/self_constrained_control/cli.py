@@ -4,6 +4,7 @@ import argparse
 import asyncio
 
 from .system import ResourceAwareSystem
+from .utils import load_config, setup_logging
 
 
 def _parse_actions(s: str) -> list[str]:
@@ -21,5 +22,7 @@ def main() -> None:
 
     args = p.parse_args()
     if args.cmd == "run":
-        sys = ResourceAwareSystem(args.config)
+        setup_logging()
+        cfg = load_config(args.config)
+        sys = ResourceAwareSystem(cfg, config_path=args.config)
         asyncio.run(sys.run_loop(_parse_actions(args.actions), epochs=args.epochs))

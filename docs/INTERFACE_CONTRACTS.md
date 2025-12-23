@@ -2,6 +2,12 @@
 
 This file defines the **stable interfaces** between modules. The intent is to keep the public contract small and testable.
 
+## Orchestrator
+
+### `ResourceAwareSystem(config: SystemConfig | dict[str, Any], *, config_path: str | None = None)`
+- Caller provides an in-memory configuration (dict or `SystemConfig`); no file I/O occurs inside the constructor. `config_path` is optional metadata and is not read.
+- Logging bootstrap is owned by the CLI entrypoint (`src/self_constrained_control/cli.py`); importing `self_constrained_control` must not mutate global logging handlers or levels.
+
 ## Neural Interface
 
 ### `N1Simulator.get_neural_spikes() -> np.ndarray`

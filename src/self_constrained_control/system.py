@@ -4,7 +4,7 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 from pydantic import BaseModel, Field
@@ -22,9 +22,7 @@ from .metrics import MetricsCollector
 from .monitoring import AnomalyDetector, BudgetHealthMonitor, GracefulDegradation
 from .neural_interface import IntentionDecoder, N1Simulator
 from .planner_module import PlannerModule
-from .utils import CircuitBreaker, StateManager, load_config, setup_logging
-
-setup_logging()
+from .utils import CircuitBreaker, StateManager
 logger = logging.getLogger(__name__)
 
 
@@ -78,9 +76,16 @@ class WatchdogTimer:
 
 
 class ResourceAwareSystem:
-    def __init__(self, config_path: str = "data/n1_config.yaml") -> None:
-        cfg = load_config(config_path)
-        self.config = SystemConfig(**cfg)
+    def __init__(
+        self, config: SystemConfig | dict[str, Any], *, config_path: str | None = None
+    ) -> None:
+        if isinstance(config, SystemConfig):
+            self.config = config
+        elif isinstance(config, dict):
+            self.config = SystemConfig(**config)
+        else:
+            raise TypeError("config must be a SystemConfig or dict")
+        self.config_path = config_path
         self.rng = np.random.default_rng(self.config.seed)
 
         self.battery = float(self.config.initial_battery)

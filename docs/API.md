@@ -12,8 +12,11 @@
 
 ```python
 from self_constrained_control.system import ResourceAwareSystem
+from self_constrained_control.utils import load_config, setup_logging
 
-sys = ResourceAwareSystem("data/n1_config.yaml")
+setup_logging()
+cfg = load_config("data/n1_config.yaml")
+sys = ResourceAwareSystem(cfg, config_path="data/n1_config.yaml")
 await sys.run_loop(actions=["move_arm","stop"], epochs=2)
 ```
 

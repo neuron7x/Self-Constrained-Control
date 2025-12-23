@@ -10,7 +10,7 @@ Scope: library entrypoint `ResourceAwareSystem`, modules under `src/self_constra
 - **Safety gates (`actuator_module.py`, `contracts.py`, `utils.CircuitBreaker`)** enforce safety mode and invariant checks.
 
 ## Gap analysis (prioritized)
-- **P0 (architectural defect)**: Import-time side effect (`setup_logging()` in `system.py`) configures global logging on library import, violating layering and surprising embedding contexts.
+- **P0 (architectural defect, fixed)**: Import-time side effect (`setup_logging()` in `system.py`) configures global logging on library import, violating layering and surprising embedding contexts. Logging bootstrap now lives in `src/self_constrained_control/cli.py`; `src/self_constrained_control/system.py` is side-effect free on import.
 - **P1 (growth blocker)**: Configuration is loaded from disk inside `ResourceAwareSystem.__init__`, coupling runtime config with filesystem paths and preventing dependency injection for tests/hosting.
 - **P1 (growth blocker)**: Orchestrator is a god-object (metrics export, persistence, degradation, budget negotiation) without explicit seams for swapping subsystems, reducing evolvability.
 - **P2 (readability)**: Observability responsibilities are split across `metrics`, `monitoring`, and `system` with no single contract describing what must be emitted per cycle.
