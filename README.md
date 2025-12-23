@@ -24,6 +24,7 @@ If you want the system to evolve without semantic drift, start here:
 - `docs/FORMALIZATION.md` — how we preserve meaning while changing code
 - `docs/REQUIREMENTS.md` — testable requirements (SRS-lite)
 - `docs/ARCHITECTURE.md` — component/dataflow model (SAD-lite)
+- `docs/ALGORITHMIC_FOUNDATIONS.md` — gating, budgeting, and advisory logic with evidence hooks
 - `docs/SAFETY_CASE.md` — assurance case (GSN-lite)
 - `docs/VALIDATION_PLAN.md` — acceptance criteria and scenarios
 - `docs/TRACEABILITY.md` — requirements → implementation → tests
@@ -85,4 +86,5 @@ Apache-2.0
 - `docs/ARCHITECTURE_GAP_ANALYSIS.md` — prioritized gaps and PR stack for architectural maturity
 - `docs/SAFETY_CASE.md` — safety argument + evidence pointers
 - `docs/TRACEABILITY.md` — requirements ↔ tests ↔ implementation
+- `docs/ALGORITHMIC_FOUNDATIONS.md` — algorithmic basis, gates, and containment
 - `docs/DOCUMENTATION_PROMPT_RESPONSE.md` — coverage of documentation/testing/CI/security items from the UA prompt

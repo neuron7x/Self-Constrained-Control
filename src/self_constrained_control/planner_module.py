@@ -67,18 +67,23 @@ class PlannerConfig:
 
 class PlannerModule:
     def __init__(
-        self, state_size: int = 2, action_size: int = 3, gamma: float = 0.95, epsilon: float = 1e-6
+        self,
+        state_size: int = 2,
+        action_size: int = 3,
+        gamma: float = 0.95,
+        epsilon: float = 1e-6,
+        seed: int = 1337,
     ) -> None:
         self.cfg = PlannerConfig(
             state_size=state_size, action_size=action_size, gamma=gamma, epsilon=epsilon
         )
         self.lyapunov = LyapunovStabilityAnalyzer()
-        self.lqr = LQRController(state_size, action_size)
+        self.lqr = LQRController(state_size, action_size, seed=seed)
         self.target_state = np.array([75.0, 75.0], dtype=np.float32)
         self.force_simplify = False
+        self.rng = np.random.default_rng(seed)
 
-    @staticmethod
-    def estimate_params(action: int) -> tuple[float, float, float]:
+    def estimate_params(self, action: int) -> tuple[float, float, float]:
         base = np.array(
             [
                 [10.0, 5.0, 8.0],
@@ -87,7 +92,7 @@ class PlannerModule:
             ],
             dtype=np.float32,
         )[action]
-        noise = np.random.normal(0.0, 0.5, 3).astype(np.float32)
+        noise = self.rng.normal(0.0, 0.5, 3).astype(np.float32)
         r, c, s = base + noise
         return float(r), float(c), float(s)
 
@@ -105,13 +110,17 @@ class PlannerModule:
         u = self.lqr.control(state, self.target_state)
         action_lqr = int(np.clip(int(np.argmax(u)), 0, self.cfg.action_size - 1))
         # candidate actions: lqr then rule-based
+        tested: set[int] = set()
         for action in (action_lqr, self.decide_rule_based(state)):
+            if action in tested:
+                continue
+            tested.add(action)
             _r, c, _ = self.estimate_params(action)
             next_state = np.maximum(state - np.array([c, 0.5 * c], dtype=np.float32), 0.0)
             ok, _dv = self.lyapunov.stable(state, next_state, self.target_state)
             if ok:
                 return action
-        return self.decide_rule_based(state)
+        return 2
 
     def get_reason(self, action_idx: int) -> str:
         return [
