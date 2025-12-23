@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import importlib
+import importlib.util
 import logging
-
-from scripts.ci import check_import_side_effects
+from pathlib import Path
 
 
 def test_import_does_not_mutate_root_logger():
@@ -21,4 +21,9 @@ def test_import_does_not_mutate_root_logger():
 
 
 def test_gate_script_passes():
-    assert check_import_side_effects.main() == 0
+    module_path = Path(__file__).resolve().parents[1] / "scripts" / "ci" / "check_import_side_effects.py"
+    spec = importlib.util.spec_from_file_location("check_import_side_effects", module_path)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.main() == 0
